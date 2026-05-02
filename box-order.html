@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Box & Supply Order — Two Men and a Truck</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #f9f8f5;
+    --border: #e2e0d8;
+    --border2: #ccc9bc;
+    --text: #1a1917;
+    --text2: #6b6860;
+    --text3: #9c9a94;
+    --accent: #c8401a;
+    --accent-hover: #a83314;
+    --accent-light: #fdf0ec;
+    --green: #1a7a3c;
+    --green-light: #edf7f1;
+    --blue: #1a4fa0;
+    --blue-light: #eef2fb;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .page-wrap { max-width: 780px; margin: 0 auto; }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1.5px solid var(--border2);
+  }
+  .logo-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  h1 { font-size: 26px; font-weight: 600; line-height: 1.2; }
+  .header-sub { font-size: 14px; color: var(--text2); margin-top: 4px; }
+  .form-id {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .icon {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    background: var(--accent-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .card-title .badge {
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--blue);
+    background: var(--blue-light);
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  /* Fields */
+  .field-row { display: grid; gap: 12px; margin-bottom: 12px; }
+  .field-row.two { grid-template-columns: 1fr 1fr; }
+  .field-row.three { grid-template-columns: 1fr 1fr 1fr; }
+  .field-row:last-child { margin-bottom: 0; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  label.field-label { font-size: 12px; font-weight: 500; color: var(--text2); }
+
+  input[type=text], input[type=email], input[type=tel],
+  input[type=date], input[type=time], input[type=number], select, textarea {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 9px 11px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    width: 100%;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-light);
+    background: #fff;
+  }
+  textarea { resize: vertical; min-height: 80px; }
+
+  /* Delivery Banner */
+  .delivery-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border2);
+    background: var(--surface2);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    user-select: none;
+  }
+  .delivery-banner:hover { background: #f0ede6; }
+  .delivery-banner input[type=checkbox] {
+    width: 18px; height: 18px;
+    accent-color: var(--green);
+    flex-shrink: 0;
+    margin-top: 2px;
+    cursor: pointer;
+  }
+  .delivery-banner-text strong { font-size: 14px; font-weight: 600; display: block; margin-bottom: 3px; }
+  .delivery-banner-text span { font-size: 13px; color: var(--text2); }
+  .delivery-fee-badge {
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .delivery-fee-badge.free { background: var(--green-light); color: var(--green); }
+  .delivery-fee-badge.paid { background: var(--accent-light); color: var(--accent); }
+
+  /* Products */
+  .product-section { margin-bottom: 1.25rem; }
+  .product-section:last-child { margin-bottom: 0; }
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .product-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: background 0.12s, border-color 0.12s;
+    cursor: pointer;
+  }
+  .product-row:hover { background: #efede7; border-color: var(--border2); }
+  .product-row.selected { background: var(--accent-light); border-color: #f0b8a8; }
+  .product-row input[type=checkbox] {
+    width: 15px; height: 15px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .product-info { flex: 1; min-width: 0; }
+  .product-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .product-price { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); margin-top: 1px; }
+  .product-qty {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .product-row.selected .product-qty { opacity: 1; pointer-events: all; }
+  .qty-btn {
+    width: 24px; height: 24px;
+    border: 0.5px solid var(--border2);
+    border-radius: 4px;
+    background: white;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text);
+    flex-shrink: 0;
+    transition: background 0.1s;
+  }
+  .qty-btn:hover { background: var(--bg); }
+  .qty-display {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  hr.divider { border: none; border-top: 0.5px solid var(--border); margin: 16px 0; }
+
+  /* Order Summary */
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    position: sticky;
+    bottom: 1rem;
+  }
+  .summary-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .summary-empty { font-size: 13px; color: var(--text3); text-align: center; padding: 8px 0; }
+  .summary-items { margin-bottom: 12px; }
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    padding: 4px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .summary-item:last-child { border-bottom: none; }
+  .summary-item-name { color: var(--text2); }
+  .summary-item-price { font-family: 'DM Mono', monospace; font-size: 12px; }
+  .summary-divider { border: none; border-top: 1px solid var(--border2); margin: 8px 0; }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 3px 0;
+  }
+  .summary-row.total {
+    font-size: 16px;
+    font-weight: 600;
+    padding-top: 8px;
+    margin-top: 4px;
+    border-top: 1.5px solid var(--border2);
+  }
+  .summary-row .mono { font-family: 'DM Mono', monospace; }
+
+  /* Buttons */
+  .btn-row { display: flex; gap: 10px; margin-top: 1.5rem; }
+  .btn {
+    flex: 1;
+    padding: 13px 20px;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 0.5px solid var(--border2); flex: 0 0 auto; padding: 13px 18px; }
+  .btn-secondary:hover { background: #ebe9e2; }
+
+  .spinner {
+    display: none;
+    width: 18px; height: 18px;
+    border: 2px solid #ffffff55;
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .submit-note { font-size: 12px; color: var(--text3); text-align: center; margin-top: 10px; }
+
+  .error-msg {
+    display: none;
+    color: var(--accent);
+    font-size: 13px;
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: var(--accent-light);
+    border-radius: var(--radius-sm);
+    border: 0.5px solid #f5c4b8;
+  }
+  .error-msg.visible { display: block; }
+
+  /* Thank You */
+  .thankyou-screen {
+    display: none;
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    margin-top: 2rem;
+  }
+  .thankyou-screen.visible { display: block; }
+  .thankyou-icon { font-size: 56px; margin-bottom: 1rem; }
+  .thankyou-title { font-size: 24px; font-weight: 600; margin-bottom: 0.5rem; }
+  .thankyou-sub { font-size: 15px; color: var(--text2); max-width: 420px; margin: 0 auto; line-height: 1.6; }
+  .thankyou-ref {
+    margin-top: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text3);
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    display: inline-block;
+  }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .btn-row, .summary-card { display: none; }
+    .card { border: 1px solid #ccc; box-shadow: none; }
+  }
+  @media (max-width: 560px) {
+    .field-row.two, .field-row.three { grid-template-columns: 1fr; }
+    .product-grid { grid-template-columns: 1fr; }
+    header { flex-direction: column; gap: 12px; }
+    .btn-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <header>
+    <div>
+      <div class="logo-name">Two Men and a Truck</div>
+      <h1>Box & Supply Order</h1>
+      <p class="header-sub">Dartmouth, Nova Scotia — Delivery available</p>
+    </div>
+    <div class="form-id">
+      <div>ORDER DATE</div>
+      <div id="form-date" style="font-weight:500;color:#1a1917;margin-top:3px"></div>
+    </div>
+  </header>
+
+  <div id="main-form">
+
+    <!-- Contact Info -->
+    <div class="card">
+      <div class="card-title"><span class="icon">👤</span> Your information</div>
+      <div class="field-row two">
+        <div class="field">
+          <label class="field-label">Full name *</label>
+          <input type="text" id="fullName" placeholder="Your full name" required>
+        </div>
+        <div class="field">
+          <label class="field-label">Phone number *</label>
+          <input type="tel" id="phone" placeholder="+1 (___) ___-____" required>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Email address *</label>
+          <input type="email" id="email" placeholder="you@example.com" required>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delivery Info -->
+    <div class="card">
+      <div class="card-title"><span class="icon">🚚</span> Delivery details</div>
+
+      <!-- Free delivery checkbox -->
+      <label class="delivery-banner" id="deliveryBanner" onclick="toggleDelivery()">
+        <input type="checkbox" id="usingMovingService" onclick="event.stopPropagation(); toggleDelivery()">
+        <div class="delivery-banner-text">
+          <strong>I'm using TWO MEN AND A TRUCK for my move</strong>
+          <span>Check this box if you have a moving booking with us — delivery is on us!</span>
+        </div>
+        <div class="delivery-fee-badge paid" id="deliveryBadge">$10.00 delivery</div>
+      </label>
+
+      <hr class="divider">
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Delivery address *</label>
+          <input type="text" id="street" placeholder="123 Main Street">
+        </div>
+      </div>
+      <div class="field-row three">
+        <div class="field">
+          <label class="field-label">City *</label>
+          <input type="text" id="city" placeholder="Halifax">
+        </div>
+        <div class="field">
+          <label class="field-label">Province</label>
+          <input type="text" id="province" value="Nova Scotia">
+        </div>
+        <div class="field">
+          <label class="field-label">Postal code *</label>
+          <input type="text" id="postalCode" placeholder="B3H 1A1">
+        </div>
+      </div>
+      <div class="field-row two">
+        <div class="field">
+          <label class="field-label">Unit / Floor (optional)</label>
+          <input type="text" id="unit" placeholder="Apt 2B">
+        </div>
+        <div class="field">
+          <label class="field-label">Building name (optional)</label>
+          <input type="text" id="building" placeholder="Harbour View Condos">
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="field-row two">
+        <div class="field">
+          <label class="field-label">Preferred delivery date *</label>
+          <input type="date" id="deliveryDate" required>
+        </div>
+        <div class="field">
+          <label class="field-label">Preferred delivery time</label>
+          <select id="deliveryTime">
+            <option value="">Any time</option>
+            <option value="morning">Morning (8AM – 12PM)</option>
+            <option value="afternoon">Afternoon (12PM – 4:30PM)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products -->
+    <div class="card">
+      <div class="card-title"><span class="icon">📦</span> Select your supplies <span class="badge">PRICES INCLUDE TAX ESTIMATE</span></div>
+
+      <!-- Boxes -->
+      <div class="product-section">
+        <div class="section-label">📦 Moving Boxes</div>
+        <div class="product-grid" id="boxes-grid"></div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- TV Boxes -->
+      <div class="product-section">
+        <div class="section-label">📺 TV & Picture Boxes</div>
+        <div class="product-grid" id="tv-grid"></div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Packing Supplies -->
+      <div class="product-section">
+        <div class="section-label">🛡️ Packing Supplies</div>
+        <div class="product-grid" id="supplies-grid"></div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Mattress Bags -->
+      <div class="product-section">
+        <div class="section-label">🛏️ Mattress Bags</div>
+        <div class="product-grid" id="mattress-grid"></div>
+      </div>
+    </div>
+
+    <!-- Special Instructions -->
+    <div class="card">
+      <div class="card-title"><span class="icon">📝</span> Special instructions</div>
+      <div class="field">
+        <label class="field-label">Notes for delivery (buzzer code, parking, access instructions...)</label>
+        <textarea id="notes" placeholder="e.g. Buzz unit 204, park on side street, leave at front door if not home..."></textarea>
+      </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="summary-card" id="summaryCard">
+      <div class="summary-title">🧾 Order Summary</div>
+      <div class="summary-empty" id="summaryEmpty">No items selected yet</div>
+      <div class="summary-items" id="summaryItems" style="display:none"></div>
+      <div id="summaryTotals" style="display:none">
+        <hr class="summary-divider">
+        <div class="summary-row"><span>Subtotal</span><span class="mono" id="subtotalDisplay">$0.00</span></div>
+        <div class="summary-row"><span id="deliveryLabel">Delivery fee</span><span class="mono" id="deliveryDisplay">$10.00</span></div>
+        <div class="summary-row total"><span>Total</span><span class="mono" id="totalDisplay">$0.00</span></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="submitBtn" onclick="submitForm()">
+        <span id="btn-text">Submit Order</span>
+        <div class="spinner" id="spinner"></div>
+      </button>
+      <button class="btn btn-secondary" onclick="window.print()" title="Print order">🖨️ Print</button>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+    <p class="submit-note">Our team will call you back within 2 hours (Mon–Fri 8AM–4:30PM) to confirm your order and process payment.</p>
+
+  </div><!-- end main-form -->
+
+  <!-- Thank You Screen -->
+  <div class="thankyou-screen" id="thankyouScreen">
+    <div class="thankyou-icon">📦</div>
+    <div class="thankyou-title">Order received — thank you!</div>
+    <div class="thankyou-sub">Our team will call you back within 2 hours during business hours (Mon–Fri, 8AM–4:30PM) to confirm your order and process payment.</div>
+    <div class="thankyou-ref" id="refNumber"></div>
+  </div>
+
+</div>
+
+<script>
+  // ─── CONFIG ───────────────────────────────────────────────
+  const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/Kp4CzDbfoX6h6r6CVJa2/webhook-trigger/c37293ab-3b5a-4c64-958e-616fa0ff956e';
+  // ──────────────────────────────────────────────────────────
+
+  document.getElementById('form-date').textContent =
+    new Date().toLocaleDateString('en-CA', {year:'numeric', month:'short', day:'numeric'});
+
+  // Set min date to today
+  document.getElementById('deliveryDate').min = new Date().toISOString().split('T')[0];
+
+  // ─── PRODUCTS ──────────────────────────────────────────────
+  const products = {
+    boxes: [
+      { id: 'small-box',    name: 'Small Box',         price: 3.99 },
+      { id: 'medium-box',   name: 'Medium Box',        price: 4.99 },
+      { id: 'large-box',    name: 'Large Box',         price: 5.99 },
+      { id: 'china-barrel', name: 'China Barrel',      price: 14.99 },
+      { id: 'wardrobe-box', name: 'Wardrobe Box',      price: 24.99 },
+    ],
+    tv: [
+      { id: 'picture-mirror-box', name: 'Picture / Mirror Box', price: 15.99 },
+      { id: 'tv-box-50',          name: 'TV Box (up to 50")',   price: 49.99 },
+      { id: 'tv-box-70',          name: 'TV Box (up to 70")',   price: 64.99 },
+    ],
+    supplies: [
+      { id: 'bubble-wrap',    name: 'Bubble Wrap',              price: 4.99 },
+      { id: 'tape',           name: 'Packing Tape',             price: 3.49 },
+      { id: 'packing-paper',  name: 'Packing Paper (25 lbs)',   price: 49.99 },
+      { id: 'stretch-wrap',   name: 'Stretch Wrap',             price: 24.99 },
+    ],
+    mattress: [
+      { id: 'mattress-king',  name: 'Mattress Bag — King',  price: 19.99 },
+      { id: 'mattress-queen', name: 'Mattress Bag — Queen', price: 19.99 },
+      { id: 'mattress-twin',  name: 'Mattress Bag — Twin',  price: 19.99 },
+    ]
+  };
+
+  const quantities = {};
+
+  function buildGrid(items, containerId) {
+    const container = document.getElementById(containerId);
+    items.forEach(item => {
+      quantities[item.id] = 0;
+      const row = document.createElement('div');
+      row.className = 'product-row';
+      row.id = 'row-' + item.id;
+      row.innerHTML = `
+        <input type="checkbox" id="cb-${item.id}" onchange="toggleItem('${item.id}', this.checked)">
+        <div class="product-info">
+          <div class="product-name">${item.name}</div>
+          <div class="product-price">$${item.price.toFixed(2)} each</div>
+        </div>
+        <div class="product-qty" id="qty-${item.id}">
+          <button class="qty-btn" type="button" onclick="changeQty('${item.id}', -1)">−</button>
+          <span class="qty-display" id="qtyval-${item.id}">1</span>
+          <button class="qty-btn" type="button" onclick="changeQty('${item.id}', 1)">+</button>
+        </div>`;
+      row.onclick = (e) => {
+        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+        const cb = document.getElementById('cb-' + item.id);
+        cb.checked = !cb.checked;
+        toggleItem(item.id, cb.checked);
+      };
+      container.appendChild(row);
+    });
+  }
+
+  function toggleItem(id, checked) {
+    const row = document.getElementById('row-' + id);
+    if (checked) {
+      row.classList.add('selected');
+      if (quantities[id] === 0) quantities[id] = 1;
+      document.getElementById('qtyval-' + id).textContent = quantities[id];
+    } else {
+      row.classList.remove('selected');
+      quantities[id] = 0;
+    }
+    updateSummary();
+  }
+
+  function changeQty(id, delta) {
+    const newVal = Math.max(1, (quantities[id] || 1) + delta);
+    quantities[id] = newVal;
+    document.getElementById('qtyval-' + id).textContent = newVal;
+    updateSummary();
+  }
+
+  function getSelectedItems() {
+    const selected = [];
+    [...Object.values(products)].flat().forEach(item => {
+      if (quantities[item.id] > 0) {
+        selected.push({ ...item, qty: quantities[item.id], lineTotal: item.price * quantities[item.id] });
+      }
+    });
+    return selected;
+  }
+
+  const DELIVERY_FEE = 10.00;
+  let freeDelivery = false;
+
+  function toggleDelivery() {
+    freeDelivery = document.getElementById('usingMovingService').checked;
+    const badge = document.getElementById('deliveryBadge');
+    if (freeDelivery) {
+      badge.textContent = 'FREE delivery';
+      badge.className = 'delivery-fee-badge free';
+    } else {
+      badge.textContent = '$10.00 delivery';
+      badge.className = 'delivery-fee-badge paid';
+    }
+    updateSummary();
+  }
+
+  function updateSummary() {
+    const items = getSelectedItems();
+    const summaryEmpty = document.getElementById('summaryEmpty');
+    const summaryItems = document.getElementById('summaryItems');
+    const summaryTotals = document.getElementById('summaryTotals');
+
+    if (items.length === 0) {
+      summaryEmpty.style.display = 'block';
+      summaryItems.style.display = 'none';
+      summaryTotals.style.display = 'none';
+      return;
+    }
+
+    summaryEmpty.style.display = 'none';
+    summaryItems.style.display = 'block';
+    summaryTotals.style.display = 'block';
+
+    summaryItems.innerHTML = items.map(item => `
+      <div class="summary-item">
+        <span class="summary-item-name">${item.qty}× ${item.name}</span>
+        <span class="summary-item-price">$${item.lineTotal.toFixed(2)}</span>
+      </div>`).join('');
+
+    const subtotal = items.reduce((sum, i) => sum + i.lineTotal, 0);
+    const delivery = freeDelivery ? 0 : DELIVERY_FEE;
+    const total = subtotal + delivery;
+
+    document.getElementById('subtotalDisplay').textContent = '$' + subtotal.toFixed(2);
+    document.getElementById('deliveryLabel').textContent = freeDelivery ? 'Delivery (FREE — moving customer)' : 'Delivery fee';
+    document.getElementById('deliveryDisplay').textContent = freeDelivery ? 'FREE' : '$' + delivery.toFixed(2);
+    document.getElementById('totalDisplay').textContent = '$' + total.toFixed(2);
+  }
+
+  function generateRef() {
+    return 'BOX-' + Date.now().toString(36).toUpperCase();
+  }
+
+  async function submitForm() {
+    const fullName = document.getElementById('fullName').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const street = document.getElementById('street').value.trim();
+    const city = document.getElementById('city').value.trim();
+    const postalCode = document.getElementById('postalCode').value.trim();
+    const deliveryDate = document.getElementById('deliveryDate').value;
+
+    const items = getSelectedItems();
+
+    const errorEl = document.getElementById('errorMsg');
+    errorEl.classList.remove('visible');
+
+    if (!fullName || !phone || !email) {
+      errorEl.textContent = 'Please fill in your name, phone number and email.';
+      errorEl.classList.add('visible');
+      return;
+    }
+    if (!street || !city || !postalCode) {
+      errorEl.textContent = 'Please fill in your delivery address.';
+      errorEl.classList.add('visible');
+      return;
+    }
+    if (!deliveryDate) {
+      errorEl.textContent = 'Please select a preferred delivery date.';
+      errorEl.classList.add('visible');
+      return;
+    }
+    if (items.length === 0) {
+      errorEl.textContent = 'Please select at least one item to order.';
+      errorEl.classList.add('visible');
+      return;
+    }
+
+    const btn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btn-text');
+    const spinner = document.getElementById('spinner');
+    btn.disabled = true;
+    btnText.style.display = 'none';
+    spinner.style.display = 'block';
+
+    const subtotal = items.reduce((s, i) => s + i.lineTotal, 0);
+    const delivery = freeDelivery ? 0 : DELIVERY_FEE;
+    const refNumber = generateRef();
+
+    const payload = {
+      refNumber,
+      submittedAt: new Date().toISOString(),
+      contact: { fullName, phone, email },
+      delivery: {
+        street,
+        city,
+        province: document.getElementById('province').value,
+        postalCode,
+        unit: document.getElementById('unit').value,
+        building: document.getElementById('building').value,
+        date: deliveryDate,
+        time: document.getElementById('deliveryTime').value,
+        usingMovingService: freeDelivery,
+        deliveryFee: delivery
+      },
+      items,
+      subtotal,
+      deliveryFee: delivery,
+      total: subtotal + delivery,
+      notes: document.getElementById('notes').value.trim()
+    };
+
+    try {
+      const res = await fetch(GHL_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        document.getElementById('main-form').style.display = 'none';
+        document.getElementById('thankyouScreen').classList.add('visible');
+        document.getElementById('refNumber').textContent = 'Reference: ' + refNumber;
+      } else { throw new Error(); }
+    } catch {
+      btn.disabled = false;
+      btnText.style.display = 'inline';
+      spinner.style.display = 'none';
+      errorEl.textContent = 'Something went wrong. Please try again or call us at +1 902-259-2498.';
+      errorEl.classList.add('visible');
+    }
+  }
+
+  // Build all product grids
+  buildGrid(products.boxes, 'boxes-grid');
+  buildGrid(products.tv, 'tv-grid');
+  buildGrid(products.supplies, 'supplies-grid');
+  buildGrid(products.mattress, 'mattress-grid');
+</script>
+</body>
+</html>
