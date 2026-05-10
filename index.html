@@ -411,9 +411,6 @@
     </div>
 
     <div class="submit-area">
-      <button class="submit-btn" type="button" onclick="window.print()" style="background:#6b6860; margin-bottom: 10px;">
-  🖨️ Print / Save as PDF
-</button>
       <button class="submit-btn" id="submitBtn" type="button" onclick="submitForm()">
         <span id="btn-text">Submit Inventory Form</span>
         <div class="spinner" id="spinner"></div>
@@ -580,7 +577,7 @@
   async function submitForm() {
     // Validate required fields
     const fullName = document.getElementById('fullName').value.trim();
-    const phone: '+1' + document.getElementById('phone').value.trim().replace(/\D/g, '').replace(/^1/, ''),
+    const phone = document.getElementById('phone').value.trim();
     const email = document.getElementById('email').value.trim();
     const pickupDate = document.getElementById('pickupDate').value;
 
@@ -609,7 +606,7 @@
       submittedAt: new Date().toISOString(),
       contact: {
         fullName,
-        phone,
+        phone: '+1' + phone.replace(/\D/g, '').replace(/^1/, ''),
         email
       },
       pickup: {
