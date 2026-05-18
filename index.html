@@ -4,321 +4,95 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Moving Inventory Form — Two Men and a Truck Halifax</title>
+<!-- Google Maps Places API — replace YOUR_GOOGLE_MAPS_API_KEY with your actual key -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAuYYpVJSDAj45RzXZ757UxpfIOyO96zZg&libraries=places&callback=initAutocomplete" async defer></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #f5f4f0;
-    --surface: #ffffff;
-    --surface2: #f9f8f5;
-    --border: #e2e0d8;
-    --border2: #ccc9bc;
-    --text: #1a1917;
-    --text2: #6b6860;
-    --text3: #9c9a94;
-    --accent: #c8401a;
-    --accent-light: #fdf0ec;
-    --blue: #1a4fa0;
-    --blue-light: #eef2fb;
-    --radius: 10px;
-    --radius-sm: 6px;
+    --bg: #f5f4f0; --surface: #ffffff; --surface2: #f9f8f5;
+    --border: #e2e0d8; --border2: #ccc9bc; --text: #1a1917;
+    --text2: #6b6860; --text3: #9c9a94; --accent: #c8401a;
+    --accent-light: #fdf0ec; --blue: #1a4fa0; --blue-light: #eef2fb;
+    --green: #1a7a3c; --green-light: #edf7f1;
+    --radius: 10px; --radius-sm: 6px;
   }
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 2rem 1rem 4rem;
-  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem 4rem; }
   .page-wrap { max-width: 760px; margin: 0 auto; }
-  header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 2.5rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1.5px solid var(--border2);
-  }
-  .logo-block {}
-  .logo-name {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--accent);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-  h1 {
-    font-size: 26px;
-    font-weight: 600;
-    color: var(--text);
-    line-height: 1.2;
-  }
-  .header-sub {
-    font-size: 14px;
-    color: var(--text2);
-    margin-top: 4px;
-  }
-  .form-id {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--text3);
-    background: var(--surface2);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 6px 10px;
-    text-align: right;
-  }
-  .card {
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-  }
-  .card-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .card-title .icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 7px;
-    background: var(--accent-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-  }
-  .card-title .tag {
-    margin-left: auto;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    font-weight: 500;
-    color: var(--blue);
-    background: var(--blue-light);
-    padding: 3px 8px;
-    border-radius: 4px;
-    letter-spacing: 0.04em;
-  }
+  header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1.5px solid var(--border2); }
+  .logo-name { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  h1 { font-size: 26px; font-weight: 600; color: var(--text); line-height: 1.2; }
+  .header-sub { font-size: 14px; color: var(--text2); margin-top: 4px; }
+  .form-id { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 6px 10px; text-align: right; }
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; }
+  .card-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px; }
+  .card-title .icon { width: 28px; height: 28px; border-radius: 7px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .card-title .tag { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; color: var(--blue); background: var(--blue-light); padding: 3px 8px; border-radius: 4px; letter-spacing: 0.04em; }
   .field-row { display: grid; gap: 12px; margin-bottom: 12px; }
   .field-row.two { grid-template-columns: 1fr 1fr; }
   .field-row.three { grid-template-columns: 1fr 1fr 1fr; }
   .field-row:last-child { margin-bottom: 0; }
   .field { display: flex; flex-direction: column; gap: 5px; }
-  label.field-label {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text2);
-    letter-spacing: 0.02em;
+  label.field-label { font-size: 12px; font-weight: 500; color: var(--text2); letter-spacing: 0.02em; }
+  input[type=text], input[type=email], input[type=tel], input[type=date], input[type=time], input[type=number], select, textarea {
+    font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text);
+    background: var(--surface2); border: 0.5px solid var(--border2);
+    border-radius: var(--radius-sm); padding: 9px 11px; outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s; width: 100%;
   }
-  input[type=text], input[type=email], input[type=tel],
-  input[type=date], input[type=time], input[type=number],
-  select, textarea {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    color: var(--text);
-    background: var(--surface2);
-    border: 0.5px solid var(--border2);
-    border-radius: var(--radius-sm);
-    padding: 9px 11px;
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    width: 100%;
-  }
-  input:focus, select:focus, textarea:focus {
-    border-color: var(--blue);
-    box-shadow: 0 0 0 3px var(--blue-light);
-    background: #fff;
-  }
+  input:focus, select:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-light); background: #fff; }
+  input.invalid, select.invalid, textarea.invalid { border-color: var(--accent) !important; box-shadow: 0 0 0 3px var(--accent-light) !important; background: #fff8f6 !important; }
+  input.valid-address { border-color: var(--green) !important; box-shadow: 0 0 0 3px var(--green-light) !important; }
+  .field-error { font-size: 11px; color: var(--accent); margin-top: 2px; display: none; }
+  .field-error.visible { display: block; }
   textarea { resize: vertical; min-height: 72px; }
-  .addr-block {
-    background: var(--surface2);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 14px;
-    margin-bottom: 10px;
-    position: relative;
-  }
-  .addr-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text3);
-    margin-bottom: 10px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-  .remove-addr {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: none;
-    border: 0.5px solid var(--border2);
-    border-radius: 4px;
-    color: var(--text2);
-    font-size: 12px;
-    padding: 2px 7px;
-    cursor: pointer;
-  }
+  .addr-block { background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 10px; position: relative; }
+  .addr-label { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--text3); margin-bottom: 10px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .remove-addr { position: absolute; top: 12px; right: 12px; background: none; border: 0.5px solid var(--border2); border-radius: 4px; color: var(--text2); font-size: 12px; padding: 2px 7px; cursor: pointer; }
   .remove-addr:hover { border-color: var(--accent); color: var(--accent); }
-  .add-addr-btn {
-    width: 100%;
-    padding: 9px;
-    background: none;
-    border: 0.5px dashed var(--border2);
-    border-radius: var(--radius-sm);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    color: var(--text2);
-    cursor: pointer;
-    margin-top: 2px;
-  }
+  .add-addr-btn { width: 100%; padding: 9px; background: none; border: 0.5px dashed var(--border2); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text2); cursor: pointer; margin-top: 2px; }
   .add-addr-btn:hover { background: var(--surface2); border-style: solid; color: var(--text); }
   hr.divider { border: none; border-top: 0.5px solid var(--border); margin: 16px 0; }
   .room-block { margin-bottom: 6px; }
-  .room-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 11px 14px;
-    background: var(--surface2);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text);
-    user-select: none;
-    transition: background 0.1s;
-  }
+  .room-toggle { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text); user-select: none; transition: background 0.1s; }
   .room-toggle:hover { background: #efede7; }
   .room-toggle.open { background: #fff; border-color: var(--border2); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
   .room-toggle .arrow { font-size: 10px; color: var(--text3); transition: transform 0.2s; }
   .room-toggle.open .arrow { transform: rotate(180deg); }
-  .room-count {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--accent);
-    background: var(--accent-light);
-    padding: 2px 7px;
-    border-radius: 4px;
-    margin-right: 8px;
-    display: none;
-  }
+  .room-count { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); background: var(--accent-light); padding: 2px 7px; border-radius: 4px; margin-right: 8px; display: none; }
   .room-count.visible { display: inline; }
-  .room-content {
-    display: none;
-    background: var(--surface);
-    border: 0.5px solid var(--border2);
-    border-top: none;
-    border-bottom-left-radius: var(--radius-sm);
-    border-bottom-right-radius: var(--radius-sm);
-    padding: 14px;
-  }
+  .room-content { display: none; background: var(--surface); border: 0.5px solid var(--border2); border-top: none; border-bottom-left-radius: var(--radius-sm); border-bottom-right-radius: var(--radius-sm); padding: 14px; }
   .room-content.open { display: block; }
   .items-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .item-row {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 5px 7px;
-    border-radius: 4px;
-    transition: background 0.1s;
-  }
+  .item-row { display: flex; align-items: center; gap: 7px; padding: 5px 7px; border-radius: 4px; transition: background 0.1s; }
   .item-row:hover { background: var(--surface2); }
   .item-row input[type=checkbox] { flex-shrink: 0; width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
   .item-row .item-name { flex: 1; font-size: 13px; color: var(--text); cursor: pointer; }
-  .item-row input[type=number] {
-    width: 54px;
-    padding: 4px 6px;
-    font-size: 12px;
-    text-align: center;
-    background: var(--bg);
-  }
+  .item-row input[type=number] { width: 54px; padding: 4px 6px; font-size: 12px; text-align: center; background: var(--bg); }
   .submit-area { margin-top: 1.5rem; text-align: center; }
-  .submit-btn {
-    display: inline-block;
-    padding: 14px 48px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    letter-spacing: 0.01em;
-    transition: background 0.15s, transform 0.1s;
-  }
+  .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .submit-btn { display: inline-block; padding: 14px 48px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; letter-spacing: 0.01em; transition: background 0.15s, transform 0.1s; }
   .submit-btn:hover { background: #a83314; }
   .submit-btn:active { transform: scale(0.98); }
   .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
+  .print-btn { display: inline-block; padding: 14px 24px; background: var(--surface2); color: var(--text2); border: 0.5px solid var(--border2); border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .print-btn:hover { background: #ebe9e2; }
   .submit-note { font-size: 12px; color: var(--text3); margin-top: 10px; }
-
-  /* Thank You Screen */
-  .thankyou-screen {
-    display: none;
-    text-align: center;
-    padding: 4rem 2rem;
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    margin-top: 2rem;
-  }
+  .spinner { display: none; width: 20px; height: 20px; border: 2px solid #ffffff55; border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-msg { display: none; color: var(--accent); font-size: 13px; margin-top: 10px; padding: 10px 14px; background: var(--accent-light); border-radius: var(--radius-sm); border: 0.5px solid #f5c4b8; }
+  .error-msg.visible { display: block; }
+  .thankyou-screen { display: none; text-align: center; padding: 4rem 2rem; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); margin-top: 2rem; }
   .thankyou-screen.visible { display: block; }
   .thankyou-icon { font-size: 56px; margin-bottom: 1rem; }
-  .thankyou-title { font-size: 24px; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; }
+  .thankyou-title { font-size: 24px; font-weight: 600; margin-bottom: 0.5rem; }
   .thankyou-sub { font-size: 15px; color: var(--text2); max-width: 400px; margin: 0 auto; line-height: 1.6; }
-  .thankyou-ref {
-    margin-top: 1.5rem;
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    color: var(--text3);
-    background: var(--surface2);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 8px 16px;
-    display: inline-block;
-  }
-
-  /* Loading spinner */
-  .spinner {
-    display: none;
-    width: 20px;
-    height: 20px;
-    border: 2px solid #ffffff55;
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    margin: 0 auto;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* Error message */
-  .error-msg {
-    display: none;
-    color: var(--accent);
-    font-size: 13px;
-    margin-top: 10px;
-    padding: 10px 14px;
-    background: var(--accent-light);
-    border-radius: var(--radius-sm);
-    border: 0.5px solid #f5c4b8;
-  }
-  .error-msg.visible { display: block; }
-
-  @media (max-width: 560px) {
-    .field-row.two, .field-row.three { grid-template-columns: 1fr; }
-    .items-grid { grid-template-columns: 1fr; }
-    header { flex-direction: column; gap: 12px; }
-  }
+  .thankyou-ref { margin-top: 1.5rem; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text3); background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 16px; display: inline-block; }
+  .pac-container { border-radius: var(--radius-sm); border: 0.5px solid var(--border2); box-shadow: 0 4px 12px rgba(0,0,0,0.1); font-family: 'DM Sans', sans-serif; font-size: 14px; }
+  .pac-item { padding: 8px 12px; cursor: pointer; }
+  .pac-item:hover { background: var(--surface2); }
+  @media print { body { background: #fff; padding: 0; } .btn-row, .submit-note { display: none; } .room-content { display: block !important; } .card { box-shadow: none; border: 1px solid #ccc; } }
+  @media (max-width: 560px) { .field-row.two, .field-row.three { grid-template-columns: 1fr; } .items-grid { grid-template-columns: 1fr; } header { flex-direction: column; gap: 12px; } }
 </style>
 </head>
 <body>
@@ -335,7 +109,6 @@
     </div>
   </header>
 
-  <!-- Main Form -->
   <div id="main-form">
 
     <!-- Contact -->
@@ -345,16 +118,19 @@
         <div class="field">
           <label class="field-label">Full name *</label>
           <input type="text" id="fullName" placeholder="Your full name" required>
+          <span class="field-error" id="fullName-error">Full name is required</span>
         </div>
         <div class="field">
           <label class="field-label">Phone number *</label>
           <input type="tel" id="phone" placeholder="+1 (___) ___-____" required>
+          <span class="field-error" id="phone-error">Please enter a valid 10-digit phone number</span>
         </div>
       </div>
       <div class="field-row">
         <div class="field">
           <label class="field-label">Email address *</label>
           <input type="email" id="email" placeholder="you@example.com" required>
+          <span class="field-error" id="email-error">Please enter a valid email address (e.g. name@gmail.com)</span>
         </div>
       </div>
     </div>
@@ -369,6 +145,7 @@
         <div class="field">
           <label class="field-label">Pickup date *</label>
           <input type="date" id="pickupDate" required>
+          <span class="field-error" id="pickupDate-error">Pickup date is required</span>
         </div>
         <div class="field">
           <label class="field-label">Pickup time</label>
@@ -411,17 +188,20 @@
     </div>
 
     <div class="submit-area">
-      <button class="submit-btn" id="submitBtn" type="button" onclick="submitForm()">
-        <span id="btn-text">Submit Inventory Form</span>
-        <div class="spinner" id="spinner"></div>
-      </button>
-      <div class="error-msg" id="errorMsg">Something went wrong. Please try again or call us at +1 902-259-2498.</div>
-      <p class="submit-note">Our team will review your inventory and contact you with a quote within 2 hours.</p>
+      <div class="btn-row">
+        <button class="submit-btn" id="submitBtn" type="button" onclick="submitForm()">
+          <span id="btn-text">Submit Inventory Form</span>
+          <div class="spinner" id="spinner"></div>
+        </button>
+        <button class="print-btn" type="button" onclick="window.print()">🖨️ Print / Save PDF</button>
+      </div>
+      <div class="error-msg" id="errorMsg"></div>
+      <p class="submit-note">Our team will review your inventory and contact you with a quote within 2 hours during business hours (Mon–Fri, 8AM–4:30PM).</p>
     </div>
 
-  </div><!-- end main-form -->
+  </div>
 
-  <!-- Thank You Screen -->
+  <!-- Thank You -->
   <div class="thankyou-screen" id="thankyouScreen">
     <div class="thankyou-icon">✅</div>
     <div class="thankyou-title">Thank you! We've received your inventory.</div>
@@ -429,16 +209,45 @@
     <div class="thankyou-ref" id="refNumber"></div>
   </div>
 
-</div><!-- end page-wrap -->
+</div>
 
 <script>
-  // ─── CONFIG ───────────────────────────────────────────────────────────────
+  // ─── CONFIG ───────────────────────────────────────────────
   const GHL_WEBHOOK_URL = 'https://hook.us2.make.com/hvg552ubnozevw3sv843weihdskt4c6n';
-  // ──────────────────────────────────────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────
 
   document.getElementById('form-date').textContent = new Date().toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'});
 
-  const addrData = {pickup:[], dropoff:[]};
+  // ─── GOOGLE MAPS AUTOCOMPLETE ─────────────────────────────
+  function initAutocomplete() {
+    setupAC('pickup');
+    setupAC('dropoff');
+  }
+
+  function setupAC(type) {
+    const el = document.getElementById(type+'-street-1');
+    if (!el || !window.google) return;
+    const ac = new google.maps.places.Autocomplete(el, {
+      componentRestrictions: { country: 'ca' },
+      fields: ['address_components'],
+      types: ['address']
+    });
+    ac.addListener('place_changed', () => {
+      const place = ac.getPlace();
+      if (!place.address_components) return;
+      let city='', province='', postal='';
+      place.address_components.forEach(c => {
+        if (c.types.includes('locality')) city = c.long_name;
+        if (c.types.includes('administrative_area_level_1')) province = c.long_name;
+        if (c.types.includes('postal_code')) postal = c.long_name;
+      });
+      const s = (id, v) => { const x=document.getElementById(id); if(x) x.value=v; };
+      s(type+'-city-1', city); s(type+'-province-1', province); s(type+'-postal-1', postal);
+      el.classList.remove('invalid'); el.classList.add('valid-address');
+    });
+  }
+
+  // ─── ADDRESSES ────────────────────────────────────────────
   const addrCounts = {pickup:0, dropoff:0};
 
   function addAddr(type) {
@@ -451,7 +260,7 @@
     div.innerHTML = `
       <div class="addr-label">Address ${n}</div>
       ${n>1 ? `<button class="remove-addr" type="button" onclick="removeAddr('${type}',${n})">Remove</button>` : ''}
-      <div class="field-row"><div class="field"><label class="field-label">Street address</label><input type="text" id="${type}-street-${n}" placeholder="123 Main Street"></div></div>
+      <div class="field-row"><div class="field"><label class="field-label">Street address</label><input type="text" id="${type}-street-${n}" placeholder="123 Main Street" autocomplete="off"></div></div>
       <div class="field-row three">
         <div class="field"><label class="field-label">City</label><input type="text" id="${type}-city-${n}" placeholder="Halifax"></div>
         <div class="field"><label class="field-label">Province</label><input type="text" id="${type}-province-${n}" value="Nova Scotia"></div>
@@ -462,6 +271,7 @@
         <div class="field"><label class="field-label">Building name (optional)</label><input type="text" id="${type}-building-${n}" placeholder="Harbour View Condos"></div>
       </div>`;
     container.appendChild(div);
+    if (window.google && n === 1) setTimeout(() => setupAC(type), 100);
   }
 
   function removeAddr(type, n) {
@@ -471,39 +281,36 @@
 
   function getAddresses(type) {
     const results = [];
-    const container = document.getElementById(type+'-addrs');
-    const blocks = container.querySelectorAll('.addr-block');
-    blocks.forEach((block, i) => {
-      const n = i + 1;
+    document.getElementById(type+'-addrs').querySelectorAll('.addr-block').forEach((block, i) => {
+      const n = i+1;
+      const g = id => (document.getElementById(id)||{}).value||'';
       results.push({
-        street: (document.getElementById(`${type}-street-${n}`) || {}).value || '',
-        city: (document.getElementById(`${type}-city-${n}`) || {}).value || '',
-        province: (document.getElementById(`${type}-province-${n}`) || {}).value || '',
-        postalCode: (document.getElementById(`${type}-postal-${n}`) || {}).value || '',
-        unit: (document.getElementById(`${type}-unit-${n}`) || {}).value || '',
-        building: (document.getElementById(`${type}-building-${n}`) || {}).value || ''
+        street: g(`${type}-street-${n}`), city: g(`${type}-city-${n}`),
+        province: g(`${type}-province-${n}`), postalCode: g(`${type}-postal-${n}`),
+        unit: g(`${type}-unit-${n}`), building: g(`${type}-building-${n}`)
       });
     });
     return results;
   }
 
+  // ─── ROOMS ────────────────────────────────────────────────
   const rooms = [
-    {id:'kitchen', label:'Kitchen', icon:'🍳', items:['Table','Chairs','Bar Stools','Bookcases','Buffet','Butcher Block','China Cabinet','Curio Cabinet','Hutch','Dishwasher','Microwave','Refrigerator','Freezer','Stove/Range','Pictures (Small)','Pictures (Large)','Boxes Small','Boxes Medium','Boxes Large']},
-    {id:'dining', label:'Dining room', icon:'🍽️', items:['Table','Chairs','Buffet','China Cabinet','Curio Cabinet','Hutch','End Table(s)','Table Lamp(s)','Floor Lamps','Mirror(s)','Pictures (Small)','Pictures (Large)','Rug(s)','Statue/Ornamental','Vase/Flower Pot','Dishpack(s)','Small TV','TV Stand','Boxes Small','Boxes Medium','Boxes Large']},
-    {id:'living', label:'Living room', icon:'🛋️', items:['Buffet','China Cabinet','Curio Cabinet','Hutch','Stereo Cabinet','Sofa 3 Cushion','Sofa Love Seat','Oversized Chair','Rocking Chair','Recliner','Coffee Table','End Table(s)','Ottoman(s)','Entertainment Centre','Lamp Table(s)','Floor Lamp(s)','TV','TV Stand','Vase/Status/Pot','Rug(s)','Pictures (Small)','Pictures (Large)','Boxes Small','Boxes Medium','Boxes Large']},
-    {id:'family', label:'Family room', icon:'📺', items:['Buffet','China Cabinet','Curio Cabinet','Hutch','Stereo Cabinet','Sofa 3 Cushion','Sofa Love Seat','Oversized Chair','Rocking Chair','Recliner','Coffee Table','End Table(s)','Ottoman(s)','Entertainment Centre','Lamp Table(s)','Floor Lamp(s)','TV','TV Stand','Vase/Status/Pot','Rug(s)','Pictures (Small)','Pictures (Large)','Boxes Small','Boxes Medium','Boxes Large']},
-    {id:'master', label:'Master bedroom', icon:'🛏️', items:['Bed – King','Bed – Queen','Bed – Single','Dresser Double','Dresser Triple','Dresser with Vanity (Mirror)','Armoire','Night Table(s)','Desk','Chair(s)','Table Lamp(s)','Floor Lamp(s)','Pictures (Small)','Pictures (Large)','Bookcase(s)','TV','TV Stand','Bench/Cedar Chest','Boxes Small','Boxes Medium','Boxes Large']},
-    {id:'bed2', label:'Bedroom 2', icon:'🛏️', items:['Bed – King','Bed – Queen','Bed – Single','Dresser Double','Dresser Triple','Dresser with Vanity (Mirror)','Armoire','Night Table(s)','Desk','Chair(s)','Table Lamp(s)','Floor Lamp(s)','Pictures (Small)','Pictures (Large)','Bookcase(s)','TV','TV Stand','Bench/Cedar Chest','Boxes Small','Boxes Medium','Boxes Large']},
-    {id:'bed3', label:'Bedroom 3', icon:'🛏️', items:['Bed – King','Bed – Queen','Bed – Single','Dresser Double','Dresser Triple','Dresser with Vanity (Mirror)','Armoire','Night Table(s)','Desk','Chair(s)','Table Lamp(s)','Floor Lamp(s)','Pictures (Small)','Pictures (Large)','Bookcase(s)','TV','TV Stand','Bench/Cedar Chest','Boxes Small','Boxes Medium','Boxes Large']},
-    {id:'bed4', label:'Bedroom 4', icon:'🛏️', items:['Bed – King','Bed – Queen','Bed – Single','Dresser Double','Dresser Triple','Dresser with Vanity (Mirror)','Armoire','Night Table(s)','Desk','Chair(s)','Table Lamp(s)','Floor Lamp(s)','Pictures (Small)','Pictures (Large)','Bookcase(s)','TV','TV Stand','Bench/Cedar Chest','Boxes Small','Boxes Medium','Boxes Large']},
-    {id:'foyer', label:'Foyer', icon:'🚪', items:["Bench/Cedar Chest","Chair(s)","Coat Rack","Deacon's Bench","Mirror","Table Lamp(s)","Floor Lamp(s)","Settee(s)","Table(s)","Status/Vase/Pot","Pictures (Small)","Pictures (Large)"]},
-    {id:'office', label:'Office', icon:'💻', items:['Bookcase(s)','Chair(s)','Desk','Filing Cabinet 2 Drawer','Filing Cabinet 3 Drawer','Filing Cabinet 4 Drawer','Vase/Flower Pot','Pictures (Small)','Pictures (Large)','TV/Monitor','PC','Printer/Copier']},
-    {id:'laundry', label:'Laundry', icon:'🫧', items:['Bookcase','Shelving Unit Small','Shelving Unit Large','Dryer','Washing Machine','Refrigerator','Freezer','Pictures (Small)','Pictures (Large)','Boxes Small','Boxes Medium','Boxes Large']},
-    {id:'storage', label:'Storage', icon:'📦', items:['Air Conditioner','Basketball Hoop','Hockey Nets','Bookcase','Shelving Unit Small','Shelving Unit Large','Folding Tables','Folding Chair(s)','Fan(s)','Refrigerator','Freezer','Golf Clubs','Hockey Bags','Skis/Snowboard','Suitcase(s)','Tires','Tool Chest','Vacuum/Shop Vac','Baby/Child Equipment','Large Toys','Boxes Small','Boxes Medium','Boxes Large']},
-    {id:'rec', label:'Recreation room / Basement', icon:'🎱', items:['Bar Stool(s)','Bookcase(s)','Entertainment Centre','Chair(s)','Coffee Table(s)','Desk','End Table(s)','Foosball Table','Gym Set','Exercise Bike','Elliptical','Treadmill','Sofa 3 Cushion','Table Lamp(s)','Floor Lamp(s)','TV','Pictures (Small)','Pictures (Large)','Boxes Small','Boxes Medium','Boxes Large']},
-    {id:'patio', label:'Patio', icon:'🌿', items:['BBQ','Bench','Garden Hose','Hockey Net','Patio Table','Patio Chair','Patio Umbrella','Picnic Table','Slide','Storage Bench','Swing Set','Trampoline','Vase/Flower Pot(s)','Boxes Small','Boxes Medium','Boxes Large']},
-    {id:'garage', label:'Garage', icon:'🔧', items:['Air Conditioner','Basketball Hoop','Hockey Nets','Ladder','Step Ladder','Work Bench','Shelving Unit Small','Shelving Unit Large','Lawn Mower','Refrigerator','Snow Blower','Golf Clubs','Hockey Bags','Yard Tools','Wheel Barrow','Tires','Tool Chest','Vacuum/Shop Vac','Bicycles','Large Toys','Boxes Small','Boxes Medium','Boxes Large']},
-    {id:'special', label:'Special items', icon:'⭐', items:['Piano – Baby Grand','Piano – Upright','Pool Table','Gun Safe','Fire Safe','Hot Tub','Grandfather Clock']}
+    {id:'kitchen',label:'Kitchen',icon:'🍳',items:['Table','Chairs','Bar Stools','Bookcases','Buffet','Butcher Block','China Cabinet','Curio Cabinet','Hutch','Dishwasher','Microwave','Refrigerator','Freezer','Stove/Range','Pictures (Small)','Pictures (Large)','Boxes Small','Boxes Medium','Boxes Large']},
+    {id:'dining',label:'Dining room',icon:'🍽️',items:['Table','Chairs','Buffet','China Cabinet','Curio Cabinet','Hutch','End Table(s)','Table Lamp(s)','Floor Lamps','Mirror(s)','Pictures (Small)','Pictures (Large)','Rug(s)','Statue/Ornamental','Vase/Flower Pot','Dishpack(s)','Small TV','TV Stand','Boxes Small','Boxes Medium','Boxes Large']},
+    {id:'living',label:'Living room',icon:'🛋️',items:['Buffet','China Cabinet','Curio Cabinet','Hutch','Stereo Cabinet','Sofa 3 Cushion','Sofa Love Seat','Oversized Chair','Rocking Chair','Recliner','Coffee Table','End Table(s)','Ottoman(s)','Entertainment Centre','Lamp Table(s)','Floor Lamp(s)','TV','TV Stand','Vase/Status/Pot','Rug(s)','Pictures (Small)','Pictures (Large)','Boxes Small','Boxes Medium','Boxes Large']},
+    {id:'family',label:'Family room',icon:'📺',items:['Buffet','China Cabinet','Curio Cabinet','Hutch','Stereo Cabinet','Sofa 3 Cushion','Sofa Love Seat','Oversized Chair','Rocking Chair','Recliner','Coffee Table','End Table(s)','Ottoman(s)','Entertainment Centre','Lamp Table(s)','Floor Lamp(s)','TV','TV Stand','Vase/Status/Pot','Rug(s)','Pictures (Small)','Pictures (Large)','Boxes Small','Boxes Medium','Boxes Large']},
+    {id:'master',label:'Master bedroom',icon:'🛏️',items:['Bed – King','Bed – Queen','Bed – Single','Dresser Double','Dresser Triple','Dresser with Vanity (Mirror)','Armoire','Night Table(s)','Desk','Chair(s)','Table Lamp(s)','Floor Lamp(s)','Pictures (Small)','Pictures (Large)','Bookcase(s)','TV','TV Stand','Bench/Cedar Chest','Boxes Small','Boxes Medium','Boxes Large']},
+    {id:'bed2',label:'Bedroom 2',icon:'🛏️',items:['Bed – King','Bed – Queen','Bed – Single','Dresser Double','Dresser Triple','Dresser with Vanity (Mirror)','Armoire','Night Table(s)','Desk','Chair(s)','Table Lamp(s)','Floor Lamp(s)','Pictures (Small)','Pictures (Large)','Bookcase(s)','TV','TV Stand','Bench/Cedar Chest','Boxes Small','Boxes Medium','Boxes Large']},
+    {id:'bed3',label:'Bedroom 3',icon:'🛏️',items:['Bed – King','Bed – Queen','Bed – Single','Dresser Double','Dresser Triple','Dresser with Vanity (Mirror)','Armoire','Night Table(s)','Desk','Chair(s)','Table Lamp(s)','Floor Lamp(s)','Pictures (Small)','Pictures (Large)','Bookcase(s)','TV','TV Stand','Bench/Cedar Chest','Boxes Small','Boxes Medium','Boxes Large']},
+    {id:'bed4',label:'Bedroom 4',icon:'🛏️',items:['Bed – King','Bed – Queen','Bed – Single','Dresser Double','Dresser Triple','Dresser with Vanity (Mirror)','Armoire','Night Table(s)','Desk','Chair(s)','Table Lamp(s)','Floor Lamp(s)','Pictures (Small)','Pictures (Large)','Bookcase(s)','TV','TV Stand','Bench/Cedar Chest','Boxes Small','Boxes Medium','Boxes Large']},
+    {id:'foyer',label:'Foyer',icon:'🚪',items:["Bench/Cedar Chest","Chair(s)","Coat Rack","Deacon's Bench","Mirror","Table Lamp(s)","Floor Lamp(s)","Settee(s)","Table(s)","Status/Vase/Pot","Pictures (Small)","Pictures (Large)"]},
+    {id:'office',label:'Office',icon:'💻',items:['Bookcase(s)','Chair(s)','Desk','Filing Cabinet 2 Drawer','Filing Cabinet 3 Drawer','Filing Cabinet 4 Drawer','Vase/Flower Pot','Pictures (Small)','Pictures (Large)','TV/Monitor','PC','Printer/Copier']},
+    {id:'laundry',label:'Laundry',icon:'🫧',items:['Bookcase','Shelving Unit Small','Shelving Unit Large','Dryer','Washing Machine','Refrigerator','Freezer','Pictures (Small)','Pictures (Large)','Boxes Small','Boxes Medium','Boxes Large']},
+    {id:'storage',label:'Storage',icon:'📦',items:['Air Conditioner','Basketball Hoop','Hockey Nets','Bookcase','Shelving Unit Small','Shelving Unit Large','Folding Tables','Folding Chair(s)','Fan(s)','Refrigerator','Freezer','Golf Clubs','Hockey Bags','Skis/Snowboard','Suitcase(s)','Tires','Tool Chest','Vacuum/Shop Vac','Baby/Child Equipment','Large Toys','Boxes Small','Boxes Medium','Boxes Large']},
+    {id:'rec',label:'Recreation room / Basement',icon:'🎱',items:['Bar Stool(s)','Bookcase(s)','Entertainment Centre','Chair(s)','Coffee Table(s)','Desk','End Table(s)','Foosball Table','Gym Set','Exercise Bike','Elliptical','Treadmill','Sofa 3 Cushion','Table Lamp(s)','Floor Lamp(s)','TV','Pictures (Small)','Pictures (Large)','Boxes Small','Boxes Medium','Boxes Large']},
+    {id:'patio',label:'Patio',icon:'🌿',items:['BBQ','Bench','Garden Hose','Hockey Net','Patio Table','Patio Chair','Patio Umbrella','Picnic Table','Slide','Storage Bench','Swing Set','Trampoline','Vase/Flower Pot(s)','Boxes Small','Boxes Medium','Boxes Large']},
+    {id:'garage',label:'Garage',icon:'🔧',items:['Air Conditioner','Basketball Hoop','Hockey Nets','Ladder','Step Ladder','Work Bench','Shelving Unit Small','Shelving Unit Large','Lawn Mower','Refrigerator','Snow Blower','Golf Clubs','Hockey Bags','Yard Tools','Wheel Barrow','Tires','Tool Chest','Vacuum/Shop Vac','Bicycles','Large Toys','Boxes Small','Boxes Medium','Boxes Large']},
+    {id:'special',label:'Special items',icon:'⭐',items:['Piano – Baby Grand','Piano – Upright','Pool Table','Gun Safe','Fire Safe','Hot Tub','Grandfather Clock']}
   ];
 
   function buildRooms() {
@@ -514,27 +321,20 @@
       const toggle = document.createElement('div');
       toggle.className = 'room-toggle';
       toggle.innerHTML = `<span>${r.icon} ${r.label}</span><span style="display:flex;align-items:center;gap:6px"><span class="room-count" id="count-${r.id}"></span><span class="arrow">▼</span></span>`;
-      toggle.onclick = () => {
-        toggle.classList.toggle('open');
-        content.classList.toggle('open');
-      };
       const content = document.createElement('div');
       content.className = 'room-content';
+      toggle.onclick = () => { toggle.classList.toggle('open'); content.classList.toggle('open'); };
       const grid = document.createElement('div');
       grid.className = 'items-grid';
       r.items.forEach(item => {
-        const safeId = r.id + '-' + item.replace(/[^a-z0-9]/gi, '');
+        const safeId = r.id+'-'+item.replace(/[^a-z0-9]/gi,'');
         const row = document.createElement('div');
         row.className = 'item-row';
-        row.innerHTML = `
-          <input type="checkbox" id="${safeId}" onchange="updateCount('${r.id}')">
-          <label class="item-name" for="${safeId}">${item}</label>
-          <input type="number" min="1" max="99" placeholder="qty" title="Quantity">`;
+        row.innerHTML = `<input type="checkbox" id="${safeId}" onchange="updateCount('${r.id}')"><label class="item-name" for="${safeId}">${item}</label><input type="number" min="1" max="99" placeholder="qty">`;
         grid.appendChild(row);
       });
       content.appendChild(grid);
-      block.appendChild(toggle);
-      block.appendChild(content);
+      block.appendChild(toggle); block.appendChild(content);
       container.appendChild(block);
     });
   }
@@ -542,107 +342,128 @@
   function updateCount(roomId) {
     const checked = document.querySelectorAll(`[id^="${roomId}-"]:checked`).length;
     const badge = document.getElementById('count-'+roomId);
-    if (checked > 0) {
-      badge.textContent = checked + ' item' + (checked > 1 ? 's' : '');
-      badge.classList.add('visible');
-    } else {
-      badge.classList.remove('visible');
-    }
+    badge.textContent = checked > 0 ? checked+' item'+(checked>1?'s':'') : '';
+    badge.classList.toggle('visible', checked > 0);
   }
 
   function getInventory() {
     const inventory = {};
     rooms.forEach(r => {
-      const roomItems = [];
+      const items = [];
       r.items.forEach(item => {
-        const safeId = r.id + '-' + item.replace(/[^a-z0-9]/gi, '');
-        const checkbox = document.getElementById(safeId);
-        if (checkbox && checkbox.checked) {
-          const qtyInput = checkbox.parentElement.querySelector('input[type=number]');
-          const qty = qtyInput && qtyInput.value ? parseInt(qtyInput.value) : 1;
-          roomItems.push({ item, qty });
+        const cb = document.getElementById(r.id+'-'+item.replace(/[^a-z0-9]/gi,''));
+        if (cb && cb.checked) {
+          const qty = cb.parentElement.querySelector('input[type=number]');
+          items.push({ item, qty: qty && qty.value ? parseInt(qty.value) : 1 });
         }
       });
-      if (roomItems.length > 0) {
-        inventory[r.label] = roomItems;
-      }
+      if (items.length > 0) inventory[r.label] = items;
     });
     return inventory;
   }
 
-  function generateRef() {
-    return 'TMAAT-' + Date.now().toString(36).toUpperCase();
+  function formatInventory(inventory) {
+    let text = '';
+    for (const [room, items] of Object.entries(inventory)) {
+      if (items.length > 0) {
+        text += room.toUpperCase() + ':\n';
+        items.forEach(i => { text += '  - ' + i.item + ' x' + i.qty + '\n'; });
+        text += '\n';
+      }
+    }
+    return text.trim();
   }
 
+  function generateRef() { return 'TMAAT-' + Date.now().toString(36).toUpperCase(); }
+
+  // ─── VALIDATION ───────────────────────────────────────────
+  const isValidEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+  const isValidPhone = p => p.replace(/\D/g,'').replace(/^1/,'').length === 10;
+
+  function setInvalid(id, errId, msg) {
+    const el=document.getElementById(id), er=document.getElementById(errId);
+    if(el) el.classList.add('invalid');
+    if(er&&msg){er.textContent=msg;er.classList.add('visible');}
+  }
+  function setValid(id, errId) {
+    const el=document.getElementById(id), er=document.getElementById(errId);
+    if(el) el.classList.remove('invalid');
+    if(er) er.classList.remove('visible');
+  }
+
+  ['fullName','phone','email','pickupDate'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => {
+      el.classList.remove('invalid');
+      const err = document.getElementById(id+'-error');
+      if (err) err.classList.remove('visible');
+    });
+  });
+
+  // ─── SUBMIT ───────────────────────────────────────────────
   async function submitForm() {
-    // Validate required fields
     const fullName = document.getElementById('fullName').value.trim();
     const phone = document.getElementById('phone').value.trim();
     const email = document.getElementById('email').value.trim();
     const pickupDate = document.getElementById('pickupDate').value;
 
-    if (!fullName || !phone || !email || !pickupDate) {
-      document.getElementById('errorMsg').textContent = 'Please fill in all required fields: Full name, Phone, Email and Pickup date.';
-      document.getElementById('errorMsg').classList.add('visible');
+    document.getElementById('errorMsg').classList.remove('visible');
+    document.querySelectorAll('.invalid').forEach(e=>e.classList.remove('invalid'));
+    document.querySelectorAll('.field-error').forEach(e=>e.classList.remove('visible'));
+
+    let hasError = false;
+
+    if (!fullName) { setInvalid('fullName','fullName-error','Full name is required'); hasError=true; }
+    else setValid('fullName','fullName-error');
+
+    if (!phone) { setInvalid('phone','phone-error','Phone number is required'); hasError=true; }
+    else if (!isValidPhone(phone)) { setInvalid('phone','phone-error','Please enter a valid 10-digit phone number'); hasError=true; }
+    else setValid('phone','phone-error');
+
+    if (!email) { setInvalid('email','email-error','Email address is required'); hasError=true; }
+    else if (!isValidEmail(email)) { setInvalid('email','email-error','Please enter a valid email (e.g. name@gmail.com)'); hasError=true; }
+    else setValid('email','email-error');
+
+    if (!pickupDate) { setInvalid('pickupDate','pickupDate-error','Pickup date is required'); hasError=true; }
+    else setValid('pickupDate','pickupDate-error');
+
+    if (hasError) {
+      const first = document.querySelector('.invalid');
+      if (first) first.scrollIntoView({behavior:'smooth',block:'center'});
       return;
     }
 
-    // Hide any previous errors
-    document.getElementById('errorMsg').classList.remove('visible');
-
-    // Show loading state
-    const btn = document.getElementById('submitBtn');
-    const btnText = document.getElementById('btn-text');
-    const spinner = document.getElementById('spinner');
-    btn.disabled = true;
-    btnText.style.display = 'none';
-    spinner.style.display = 'block';
+    const btn=document.getElementById('submitBtn'), btnText=document.getElementById('btn-text'), spinner=document.getElementById('spinner');
+    btn.disabled=true; btnText.style.display='none'; spinner.style.display='block';
 
     const refNumber = generateRef();
+    const inventoryData = getInventory();
 
-    // Build payload
     const payload = {
       refNumber,
       submittedAt: new Date().toISOString(),
       contact: {
         fullName,
-        phone: '+1' + phone.replace(/\D/g, '').replace(/^1/, ''),
+        phone: '+1' + phone.replace(/\D/g,'').replace(/^1/,''),
         email
       },
-      pickup: {
-        addresses: getAddresses('pickup'),
-        date: pickupDate,
-        time: document.getElementById('pickupTime').value
-      },
-      dropoff: {
-        addresses: getAddresses('dropoff'),
-        date: document.getElementById('dropoffDate').value,
-        time: document.getElementById('dropoffTime').value
-      },
-      inventory: getInventory(),
+      pickup: { addresses: getAddresses('pickup'), date: pickupDate, time: document.getElementById('pickupTime').value },
+      dropoff: { addresses: getAddresses('dropoff'), date: document.getElementById('dropoffDate').value, time: document.getElementById('dropoffTime').value },
+      inventory: inventoryData,
+      inventoryText: formatInventory(inventoryData),
       notes: document.getElementById('notes').value.trim()
     };
 
     try {
-      const response = await fetch(GHL_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        // Show thank you screen
-        document.getElementById('main-form').style.display = 'none';
+      const res = await fetch(GHL_WEBHOOK_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+      if (res.ok) {
+        document.getElementById('main-form').style.display='none';
         document.getElementById('thankyouScreen').classList.add('visible');
-        document.getElementById('refNumber').textContent = 'Reference: ' + refNumber;
-      } else {
-        throw new Error('Server error');
-      }
-    } catch (err) {
-      btn.disabled = false;
-      btnText.style.display = 'inline';
-      spinner.style.display = 'none';
-      document.getElementById('errorMsg').textContent = 'Something went wrong. Please try again or call us at +1 902-259-2498.';
+        document.getElementById('refNumber').textContent='Reference: '+refNumber;
+      } else throw new Error();
+    } catch {
+      btn.disabled=false; btnText.style.display='inline'; spinner.style.display='none';
+      document.getElementById('errorMsg').textContent='Something went wrong. Please try again or call us at +1 902-259-2498.';
       document.getElementById('errorMsg').classList.add('visible');
     }
   }
