@@ -717,13 +717,14 @@ else setValid('lastName','lastName-error');
   }
 
   // Set minimum date to today for pickup and dropoff
-const today = new Date().toISOString().split('T')[0];
-document.getElementById('pickupDate').setAttribute('min', today);
-document.getElementById('dropoffDate').setAttribute('min', today);
-
 addAddr('pickup');
 addAddr('dropoff');
 buildRooms();
+
+// Set minimum date to today AFTER address blocks are created
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('pickupDate').setAttribute('min', today);
+document.getElementById('dropoffDate').setAttribute('min', today);
 
 This automatically sets today's date as the minimum — past dates will be greyed out and unselectable. And since it's calculated dynamically it always uses the actual current date!
 Commit and test! 🙙
