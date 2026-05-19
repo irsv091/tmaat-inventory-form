@@ -4,8 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Moving Inventory Form — Two Men and a Truck Halifax</title>
-<!-- Google Maps Places API — replace YOUR_GOOGLE_MAPS_API_KEY with your actual key -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAuYYpVJSDAj45RzXZ757UxpfIOyO96zZg&libraries=places&callback=initAutocomplete" async defer></script>
+<!-- Google Maps Places API (New) -->
+<script>
+  (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+  ({key: "AIzaSyAuYYpVJSDAj45RzXZ757UxpfIOyO96zZg", v: "weekly"});
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -218,34 +221,62 @@
 
   document.getElementById('form-date').textContent = new Date().toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'});
 
-  // ─── GOOGLE MAPS AUTOCOMPLETE ─────────────────────────────
-  function initAutocomplete() {
-    setupAC('pickup');
-    setupAC('dropoff');
+  // ─── GOOGLE MAPS AUTOCOMPLETE (New API) ──────────────────
+  async function initAutocomplete() {
+    await setupAC('pickup');
+    await setupAC('dropoff');
   }
 
-  function setupAC(type) {
-    const el = document.getElementById(type+'-street-1');
-    if (!el || !window.google) return;
-    const ac = new google.maps.places.Autocomplete(el, {
-      componentRestrictions: { country: 'ca' },
-      fields: ['address_components'],
-      types: ['address']
-    });
-    ac.addListener('place_changed', () => {
-      const place = ac.getPlace();
-      if (!place.address_components) return;
-      let city='', province='', postal='';
-      place.address_components.forEach(c => {
-        if (c.types.includes('locality')) city = c.long_name;
-        if (c.types.includes('administrative_area_level_1')) province = c.long_name;
-        if (c.types.includes('postal_code')) postal = c.long_name;
+  async function setupAC(type) {
+    const inputEl = document.getElementById(type+'-street-1');
+    if (!inputEl) return;
+    try {
+      const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
+      const wrapper = inputEl.parentElement;
+
+      // Create the new autocomplete element
+      const pac = new PlaceAutocompleteElement({
+        componentRestrictions: { country: 'ca' },
+        types: ['address']
       });
-      const s = (id, v) => { const x=document.getElementById(id); if(x) x.value=v; };
-      s(type+'-city-1', city); s(type+'-province-1', province); s(type+'-postal-1', postal);
-      el.classList.remove('invalid'); el.classList.add('valid-address');
-    });
+
+      // Style it to match our form
+      pac.style.width = '100%';
+      pac.style.display = 'block';
+
+      // Hide the original input and replace with pac element
+      inputEl.style.display = 'none';
+      wrapper.insertBefore(pac, inputEl);
+
+      pac.addEventListener('gmp-placeselect', async ({ place }) => {
+        await place.fetchFields({ fields: ['addressComponents'] });
+        let street='', city='', province='', postal='';
+        place.addressComponents.forEach(c => {
+          if (c.types.includes('street_number')) street = c.longText + ' ';
+          if (c.types.includes('route')) street += c.longText;
+          if (c.types.includes('locality')) city = c.longText;
+          if (c.types.includes('administrative_area_level_1')) province = c.longText;
+          if (c.types.includes('postal_code')) postal = c.longText;
+        });
+        inputEl.value = street.trim();
+        const s = (id, v) => { const x=document.getElementById(id); if(x) x.value=v; };
+        s(type+'-city-1', city);
+        s(type+'-province-1', province);
+        s(type+'-postal-1', postal);
+        inputEl.classList.remove('invalid');
+        inputEl.classList.add('valid-address');
+      });
+    } catch(e) {
+      // Fallback — show original input if new API fails
+      console.log('Places API fallback:', e);
+    }
   }
+
+  // Initialize autocomplete on page load
+  window.addEventListener('load', () => {
+    if (window.google) initAutocomplete();
+    else setTimeout(() => { if (window.google) initAutocomplete(); }, 2000);
+  });
 
   // ─── ADDRESSES ────────────────────────────────────────────
   const addrCounts = {pickup:0, dropoff:0};
@@ -262,8 +293,8 @@
       ${n>1 ? `<button class="remove-addr" type="button" onclick="removeAddr('${type}',${n})">Remove</button>` : ''}
       <div class="field-row"><div class="field"><label class="field-label">Street address</label><input type="text" id="${type}-street-${n}" placeholder="123 Main Street" autocomplete="off"></div></div>
       <div class="field-row three">
-        <div class="field"><label class="field-label">City</label><input type="text" id="${type}-city-${n}" placeholder="City"></div>
-        <div class="field"><label class="field-label">Province</label><input type="text" id="${type}-province-${n}" placeholder="Province"></div>
+        <div class="field"><label class="field-label">City</label><input type="text" id="${type}-city-${n}" placeholder="Halifax"></div>
+        <div class="field"><label class="field-label">Province</label><input type="text" id="${type}-province-${n}" value="Nova Scotia"></div>
         <div class="field"><label class="field-label">Postal code</label><input type="text" id="${type}-postal-${n}" placeholder="B3H 1A1"></div>
       </div>
       <div class="field-row two">
