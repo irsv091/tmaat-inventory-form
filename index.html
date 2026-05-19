@@ -311,7 +311,7 @@
 
     // Contact
     addSection('CUSTOMER INFORMATION');
-    addField('Name', payload.contact.fullName);
+    addField('Name', payload.contact.firstName + ' ' + payload.contact.lastName);
     addField('Phone', payload.contact.phone);
     addField('Email', payload.contact.email);
 
