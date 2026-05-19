@@ -355,11 +355,13 @@
 
   // ─── UPLOAD TO CLOUDINARY ─────────────────────────────────
   async function uploadToCloudinary(pdfBlob, refNumber, customerName) {
-    const formData = new FormData();
-    formData.append('file', pdfBlob, `${refNumber}.pdf`);
-    formData.append('upload_preset', CLOUDINARY_PRESET);
     const safeName = (customerName || 'Customer').replace(/[^a-zA-Z0-9]/g, '_');
-formData.append('public_id', `tmaat_inventory_forms/${safeName}_${refNumber}`);
+    const publicId = `tmt_inventory_forms/${safeName}_${refNumber}`;
+
+    const formData = new FormData();
+    formData.append('file', pdfBlob, `${safeName}_${refNumber}.pdf`);
+    formData.append('upload_preset', CLOUDINARY_PRESET);
+    formData.append('public_id', publicId);
 
     const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`, {
       method: 'POST',
@@ -372,7 +374,8 @@ formData.append('public_id', `tmaat_inventory_forms/${safeName}_${refNumber}`);
       throw new Error('Cloudinary upload failed');
     }
     const data = await res.json();
-    return data.secure_url;
+    // Add .pdf extension to secure_url so browsers open it correctly
+    return data.secure_url + '.pdf';
   }
 
   document.getElementById('form-date').textContent = new Date().toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'});
@@ -586,7 +589,7 @@ formData.append('public_id', `tmaat_inventory_forms/${safeName}_${refNumber}`);
     return text.trim();
   }
 
-  function generateRef() { return 'TMAAT-' + Date.now().toString(36).toUpperCase(); }
+  function generateRef() { return 'TMT-' + Date.now().toString(36).toUpperCase(); }
 
   // ─── VALIDATION ───────────────────────────────────────────
   const isValidEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
@@ -676,7 +679,7 @@ formData.append('public_id', `tmaat_inventory_forms/${safeName}_${refNumber}`);
       btnText.textContent = 'Uploading...';
       btnText.style.display = 'inline';
       spinner.style.display = 'none';
-      const pdfUrl = await uploadToCloudinary(pdfBlob, refNumber, fullName);
+      const pdfUrl = await uploadToCloudinary(pdfBlob, refNumber);
       payload.pdfUrl = pdfUrl;
 
       // Step 4 — Send to GHL
