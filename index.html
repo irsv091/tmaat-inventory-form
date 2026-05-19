@@ -623,7 +623,9 @@
 
   // ─── SUBMIT ───────────────────────────────────────────────
   async function submitForm() {
-    const fullName = document.getElementById('fullName').value.trim();
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const fullName = firstName + ' ' + lastName;
     const phone = document.getElementById('phone').value.trim();
     const email = document.getElementById('email').value.trim();
     const pickupDate = document.getElementById('pickupDate').value;
@@ -634,8 +636,11 @@
 
     let hasError = false;
 
-    if (!fullName) { setInvalid('fullName','fullName-error','Full name is required'); hasError=true; }
-    else setValid('fullName','fullName-error');
+    if (!firstName) { setInvalid('firstName','firstName-error','First name is required'); hasError=true; }
+else setValid('firstName','firstName-error');
+
+if (!lastName) { setInvalid('lastName','lastName-error','Last name is required'); hasError=true; }
+else setValid('lastName','lastName-error');
 
     if (!phone) { setInvalid('phone','phone-error','Phone number is required'); hasError=true; }
     else if (!isValidPhone(phone)) { setInvalid('phone','phone-error','Please enter a valid 10-digit phone number'); hasError=true; }
@@ -665,7 +670,9 @@
       const payload = {
         refNumber,
         submittedAt: new Date().toISOString(),
-        contact: {
+       contact: {
+          firstName,
+          lastName,
           fullName,
           phone: '+1' + phone.replace(/\D/g,'').replace(/^1/,''),
           email
