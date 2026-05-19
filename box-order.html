@@ -4,366 +4,121 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Box & Supply Order — Two Men and a Truck</title>
+<!-- Google Maps Places API (New) -->
+<script>
+  (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+  ({key: "AIzaSyAuYYpVJSDAj45RzXZ757UxpfIOyO96zZg", v: "weekly"});
+</script>
+<!-- jsPDF for PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg: #f5f4f0;
-    --surface: #ffffff;
-    --surface2: #f9f8f5;
-    --border: #e2e0d8;
-    --border2: #ccc9bc;
-    --text: #1a1917;
-    --text2: #6b6860;
-    --text3: #9c9a94;
-    --accent: #c8401a;
-    --accent-hover: #a83314;
-    --accent-light: #fdf0ec;
-    --green: #1a7a3c;
-    --green-light: #edf7f1;
-    --blue: #1a4fa0;
-    --blue-light: #eef2fb;
-    --radius: 10px;
-    --radius-sm: 6px;
+    --bg: #f5f4f0; --surface: #ffffff; --surface2: #f9f8f5;
+    --border: #e2e0d8; --border2: #ccc9bc; --text: #1a1917;
+    --text2: #6b6860; --text3: #9c9a94; --accent: #c8401a;
+    --accent-hover: #a83314; --accent-light: #fdf0ec;
+    --green: #1a7a3c; --green-light: #edf7f1;
+    --blue: #1a4fa0; --blue-light: #eef2fb;
+    --radius: 10px; --radius-sm: 6px;
   }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 2rem 1rem 4rem;
-  }
-
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem 4rem; }
   .page-wrap { max-width: 780px; margin: 0 auto; }
-
-  /* Header */
-  header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1.5px solid var(--border2);
-  }
-  .logo-name {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--accent);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
+  header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1.5px solid var(--border2); }
+  .logo-name { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
   h1 { font-size: 26px; font-weight: 600; line-height: 1.2; }
   .header-sub { font-size: 14px; color: var(--text2); margin-top: 4px; }
-  .form-id {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--text3);
-    background: var(--surface2);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 6px 10px;
-    text-align: right;
-    white-space: nowrap;
-  }
-
-  /* Cards */
-  .card {
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-  }
-  .card-title {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .card-title .icon {
-    width: 28px; height: 28px;
-    border-radius: 7px;
-    background: var(--accent-light);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; flex-shrink: 0;
-  }
-  .card-title .badge {
-    margin-left: auto;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    font-weight: 500;
-    color: var(--blue);
-    background: var(--blue-light);
-    padding: 3px 8px;
-    border-radius: 4px;
-  }
-
-  /* Fields */
+  .form-id { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 6px 10px; text-align: right; white-space: nowrap; }
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; }
+  .card-title { font-size: 15px; font-weight: 600; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px; }
+  .card-title .icon { width: 28px; height: 28px; border-radius: 7px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .card-title .badge { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; color: var(--blue); background: var(--blue-light); padding: 3px 8px; border-radius: 4px; }
   .field-row { display: grid; gap: 12px; margin-bottom: 12px; }
   .field-row.two { grid-template-columns: 1fr 1fr; }
   .field-row.three { grid-template-columns: 1fr 1fr 1fr; }
   .field-row:last-child { margin-bottom: 0; }
   .field { display: flex; flex-direction: column; gap: 5px; }
   label.field-label { font-size: 12px; font-weight: 500; color: var(--text2); }
-
-  input[type=text], input[type=email], input[type=tel],
-  input[type=date], input[type=time], input[type=number], select, textarea {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    color: var(--text);
-    background: var(--surface2);
-    border: 0.5px solid var(--border2);
-    border-radius: var(--radius-sm);
-    padding: 9px 11px;
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    width: 100%;
+  input[type=text], input[type=email], input[type=tel], input[type=date], input[type=time], input[type=number], select, textarea {
+    font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text);
+    background: var(--surface2); border: 0.5px solid var(--border2);
+    border-radius: var(--radius-sm); padding: 9px 11px; outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s; width: 100%;
   }
-  input:focus, select:focus, textarea:focus {
-    border-color: var(--blue);
-    box-shadow: 0 0 0 3px var(--blue-light);
-    background: #fff;
-  }
+  input:focus, select:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-light); background: #fff; }
+  input.invalid, select.invalid, textarea.invalid { border-color: var(--accent) !important; box-shadow: 0 0 0 3px var(--accent-light) !important; background: #fff8f6 !important; }
+  input.valid-address { border-color: var(--green) !important; box-shadow: 0 0 0 3px var(--green-light) !important; }
+  .field-error { font-size: 11px; color: var(--accent); margin-top: 2px; display: none; }
+  .field-error.visible { display: block; }
   textarea { resize: vertical; min-height: 80px; }
-
-  /* Delivery Banner */
-  .delivery-banner {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    padding: 14px 16px;
-    border-radius: var(--radius-sm);
-    border: 0.5px solid var(--border2);
-    background: var(--surface2);
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
-    user-select: none;
-  }
+  .delivery-banner { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--surface2); cursor: pointer; transition: background 0.15s, border-color 0.15s; user-select: none; }
   .delivery-banner:hover { background: #f0ede6; }
-  .delivery-banner input[type=checkbox] {
-    width: 18px; height: 18px;
-    accent-color: var(--green);
-    flex-shrink: 0;
-    margin-top: 2px;
-    cursor: pointer;
-  }
+  .delivery-banner input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--green); flex-shrink: 0; margin-top: 2px; cursor: pointer; }
   .delivery-banner-text strong { font-size: 14px; font-weight: 600; display: block; margin-bottom: 3px; }
   .delivery-banner-text span { font-size: 13px; color: var(--text2); }
-  .delivery-fee-badge {
-    margin-left: auto;
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 4px 10px;
-    border-radius: 4px;
-    white-space: nowrap;
-    flex-shrink: 0;
-    transition: all 0.2s;
-  }
+  .delivery-fee-badge { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; padding: 4px 10px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; transition: all 0.2s; }
   .delivery-fee-badge.free { background: var(--green-light); color: var(--green); }
   .delivery-fee-badge.paid { background: var(--accent-light); color: var(--accent); }
-
-  /* Products */
   .product-section { margin-bottom: 1.25rem; }
   .product-section:last-child { margin-bottom: 0; }
-  .section-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    font-weight: 500;
-    color: var(--text3);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
+  .section-label { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; color: var(--text3); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
   .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .product-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    background: var(--surface2);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    transition: background 0.12s, border-color 0.12s;
-    cursor: pointer;
-  }
+  .product-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); transition: background 0.12s, border-color 0.12s; cursor: pointer; }
   .product-row:hover { background: #efede7; border-color: var(--border2); }
   .product-row.selected { background: var(--accent-light); border-color: #f0b8a8; }
-  .product-row input[type=checkbox] {
-    width: 15px; height: 15px;
-    accent-color: var(--accent);
-    flex-shrink: 0;
-    cursor: pointer;
-  }
+  .product-row input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer; }
   .product-info { flex: 1; min-width: 0; }
   .product-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .product-price { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); margin-top: 1px; }
-  .product-qty {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
-  }
+  .product-qty { display: flex; align-items: center; gap: 4px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
   .product-row.selected .product-qty { opacity: 1; pointer-events: all; }
-  .qty-btn {
-    width: 24px; height: 24px;
-    border: 0.5px solid var(--border2);
-    border-radius: 4px;
-    background: white;
-    font-size: 14px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    color: var(--text);
-    flex-shrink: 0;
-    transition: background 0.1s;
-  }
+  .qty-btn { width: 24px; height: 24px; border: 0.5px solid var(--border2); border-radius: 4px; background: white; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text); flex-shrink: 0; transition: background 0.1s; }
   .qty-btn:hover { background: var(--bg); }
-  .qty-display {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    font-weight: 500;
-    min-width: 20px;
-    text-align: center;
-  }
-
+  .qty-display { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; min-width: 20px; text-align: center; }
   hr.divider { border: none; border-top: 0.5px solid var(--border); margin: 16px 0; }
-
-  /* Order Summary */
-  .summary-card {
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-radius: var(--radius);
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-    position: sticky;
-    bottom: 1rem;
-  }
+  .summary-card { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
   .summary-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
   .summary-empty { font-size: 13px; color: var(--text3); text-align: center; padding: 8px 0; }
   .summary-items { margin-bottom: 12px; }
-  .summary-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 13px;
-    padding: 4px 0;
-    border-bottom: 0.5px solid var(--border);
-  }
+  .summary-item { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 4px 0; border-bottom: 0.5px solid var(--border); }
   .summary-item:last-child { border-bottom: none; }
   .summary-item-name { color: var(--text2); }
   .summary-item-price { font-family: 'DM Mono', monospace; font-size: 12px; }
   .summary-divider { border: none; border-top: 1px solid var(--border2); margin: 8px 0; }
-  .summary-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    padding: 3px 0;
-  }
-  .summary-row.total {
-    font-size: 16px;
-    font-weight: 600;
-    padding-top: 8px;
-    margin-top: 4px;
-    border-top: 1.5px solid var(--border2);
-  }
+  .summary-row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
+  .summary-row.total { font-size: 16px; font-weight: 600; padding-top: 8px; margin-top: 4px; border-top: 1.5px solid var(--border2); }
   .summary-row .mono { font-family: 'DM Mono', monospace; }
-
-  /* Buttons */
   .btn-row { display: flex; gap: 10px; margin-top: 1.5rem; }
-  .btn {
-    flex: 1;
-    padding: 13px 20px;
-    border: none;
-    border-radius: var(--radius);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-  }
+  .btn { flex: 1; padding: 13px 20px; border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s, transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .btn:active { transform: scale(0.98); }
   .btn-primary { background: var(--accent); color: white; }
   .btn-primary:hover { background: var(--accent-hover); }
   .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
   .btn-secondary { background: var(--surface2); color: var(--text); border: 0.5px solid var(--border2); flex: 0 0 auto; padding: 13px 18px; }
   .btn-secondary:hover { background: #ebe9e2; }
-
-  .spinner {
-    display: none;
-    width: 18px; height: 18px;
-    border: 2px solid #ffffff55;
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-  }
+  .spinner { display: none; width: 18px; height: 18px; border: 2px solid #ffffff55; border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
   .submit-note { font-size: 12px; color: var(--text3); text-align: center; margin-top: 10px; }
-
-  .error-msg {
-    display: none;
-    color: var(--accent);
-    font-size: 13px;
-    margin-top: 10px;
-    padding: 10px 14px;
-    background: var(--accent-light);
-    border-radius: var(--radius-sm);
-    border: 0.5px solid #f5c4b8;
-  }
+  .error-msg { display: none; color: var(--accent); font-size: 13px; margin-top: 10px; padding: 10px 14px; background: var(--accent-light); border-radius: var(--radius-sm); border: 0.5px solid #f5c4b8; }
   .error-msg.visible { display: block; }
-
-  /* Thank You */
-  .thankyou-screen {
-    display: none;
-    text-align: center;
-    padding: 4rem 2rem;
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    margin-top: 2rem;
-  }
+  .thankyou-screen { display: none; text-align: center; padding: 4rem 2rem; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); margin-top: 2rem; }
   .thankyou-screen.visible { display: block; }
   .thankyou-icon { font-size: 56px; margin-bottom: 1rem; }
   .thankyou-title { font-size: 24px; font-weight: 600; margin-bottom: 0.5rem; }
   .thankyou-sub { font-size: 15px; color: var(--text2); max-width: 420px; margin: 0 auto; line-height: 1.6; }
-  .thankyou-ref {
-    margin-top: 1.5rem;
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    color: var(--text3);
-    background: var(--surface2);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 8px 16px;
-    display: inline-block;
-  }
-
-  @media print {
-    body { background: white; padding: 0; }
-    .btn-row, .summary-card { display: none; }
-    .card { border: 1px solid #ccc; box-shadow: none; }
-  }
-  @media (max-width: 560px) {
-    .field-row.two, .field-row.three { grid-template-columns: 1fr; }
-    .product-grid { grid-template-columns: 1fr; }
-    header { flex-direction: column; gap: 12px; }
-    .btn-row { flex-direction: column; }
-  }
+  .thankyou-ref { margin-top: 1.5rem; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text3); background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 16px; display: inline-block; }
+  /* Google Maps autocomplete */
+  gmp-placeautocomplete { width: 100%; display: block; }
+  gmp-placeautocomplete::part(input) { font-family: 'DM Sans', sans-serif !important; font-size: 14px !important; color: #1a1917 !important; background: #f9f8f5 !important; border: 0.5px solid #ccc9bc !important; border-radius: 6px !important; padding: 9px 11px !important; outline: none !important; width: 100% !important; box-sizing: border-box !important; height: auto !important; box-shadow: none !important; }
+  gmp-placeautocomplete::part(input):focus { border-color: #1a4fa0 !important; box-shadow: 0 0 0 3px #eef2fb !important; background: #fff !important; }
+  gmp-placeautocomplete.valid-address::part(input) { border-color: #1a7a3c !important; box-shadow: 0 0 0 3px #edf7f1 !important; }
+  @media print { body { background: white; padding: 0; } .btn-row, .summary-card { display: none; } .card { border: 1px solid #ccc; box-shadow: none; } }
+  @media (max-width: 560px) { .field-row.two, .field-row.three { grid-template-columns: 1fr; } .product-grid { grid-template-columns: 1fr; } header { flex-direction: column; gap: 12px; } .btn-row { flex-direction: column; } }
 </style>
 </head>
 <body>
 <div class="page-wrap">
-
   <header>
     <div>
       <div class="logo-name">Two Men and a Truck</div>
@@ -377,24 +132,31 @@
   </header>
 
   <div id="main-form">
-
     <!-- Contact Info -->
     <div class="card">
       <div class="card-title"><span class="icon">👤</span> Your information</div>
       <div class="field-row two">
         <div class="field">
-          <label class="field-label">Full name *</label>
-          <input type="text" id="fullName" placeholder="Your full name" required>
+          <label class="field-label">First name *</label>
+          <input type="text" id="firstName" placeholder="First name" required>
+          <span class="field-error" id="firstName-error">First name is required</span>
         </div>
+        <div class="field">
+          <label class="field-label">Last name *</label>
+          <input type="text" id="lastName" placeholder="Last name" required>
+          <span class="field-error" id="lastName-error">Last name is required</span>
+        </div>
+      </div>
+      <div class="field-row two">
         <div class="field">
           <label class="field-label">Phone number *</label>
           <input type="tel" id="phone" placeholder="+1 (___) ___-____" required>
+          <span class="field-error" id="phone-error">Please enter a valid 10-digit phone number</span>
         </div>
-      </div>
-      <div class="field-row">
         <div class="field">
           <label class="field-label">Email address *</label>
           <input type="email" id="email" placeholder="you@example.com" required>
+          <span class="field-error" id="email-error">Please enter a valid email address</span>
         </div>
       </div>
     </div>
@@ -402,8 +164,6 @@
     <!-- Delivery Info -->
     <div class="card">
       <div class="card-title"><span class="icon">🚚</span> Delivery details</div>
-
-      <!-- Free delivery checkbox -->
       <label class="delivery-banner" id="deliveryBanner" onclick="toggleDelivery()">
         <input type="checkbox" id="usingMovingService" onclick="event.stopPropagation(); toggleDelivery()">
         <div class="delivery-banner-text">
@@ -412,27 +172,28 @@
         </div>
         <div class="delivery-fee-badge paid" id="deliveryBadge">$10.00 delivery</div>
       </label>
-
       <hr class="divider">
-
       <div class="field-row">
         <div class="field">
           <label class="field-label">Delivery address *</label>
-          <input type="text" id="street" placeholder="123 Main Street">
+          <input type="text" id="street" placeholder="Start typing your address..." autocomplete="off">
+          <span class="field-error" id="street-error">Delivery address is required</span>
         </div>
       </div>
       <div class="field-row three">
         <div class="field">
           <label class="field-label">City *</label>
-          <input type="text" id="city" placeholder="Halifax">
+          <input type="text" id="city" placeholder="City">
+          <span class="field-error" id="city-error">City is required</span>
         </div>
         <div class="field">
           <label class="field-label">Province</label>
-          <input type="text" id="province" value="Nova Scotia">
+          <input type="text" id="province" placeholder="Province">
         </div>
         <div class="field">
           <label class="field-label">Postal code *</label>
           <input type="text" id="postalCode" placeholder="B3H 1A1">
+          <span class="field-error" id="postalCode-error">Postal code is required</span>
         </div>
       </div>
       <div class="field-row two">
@@ -450,6 +211,7 @@
         <div class="field">
           <label class="field-label">Preferred delivery date *</label>
           <input type="date" id="deliveryDate" required>
+          <span class="field-error" id="deliveryDate-error">Delivery date is required</span>
         </div>
         <div class="field">
           <label class="field-label">Preferred delivery time</label>
@@ -465,39 +227,28 @@
     <!-- Products -->
     <div class="card">
       <div class="card-title"><span class="icon">📦</span> Select your supplies <span class="badge">PRICES INCLUDE TAX ESTIMATE</span></div>
-
-      <!-- Boxes -->
       <div class="product-section">
         <div class="section-label">📦 Moving Boxes</div>
         <div class="product-grid" id="boxes-grid"></div>
       </div>
-
       <hr class="divider">
-
-      <!-- TV Boxes -->
       <div class="product-section">
         <div class="section-label">📺 TV & Picture Boxes</div>
         <div class="product-grid" id="tv-grid"></div>
       </div>
-
       <hr class="divider">
-
-      <!-- Packing Supplies -->
       <div class="product-section">
         <div class="section-label">🛡️ Packing Supplies</div>
         <div class="product-grid" id="supplies-grid"></div>
       </div>
-
       <hr class="divider">
-
-      <!-- Mattress Bags -->
       <div class="product-section">
         <div class="section-label">🛏️ Mattress Bags</div>
         <div class="product-grid" id="mattress-grid"></div>
       </div>
     </div>
 
-    <!-- Special Instructions -->
+    <!-- Notes -->
     <div class="card">
       <div class="card-title"><span class="icon">📝</span> Special instructions</div>
       <div class="field">
@@ -526,11 +277,9 @@
       </button>
       <button class="btn btn-secondary" onclick="window.print()" title="Print order">🖨️ Print</button>
     </div>
-
     <div class="error-msg" id="errorMsg"></div>
     <p class="submit-note">Our team will call you back within 2 hours (Mon–Fri 8AM–4:30PM) to confirm your order and process payment.</p>
-
-  </div><!-- end main-form -->
+  </div>
 
   <!-- Thank You Screen -->
   <div class="thankyou-screen" id="thankyouScreen">
@@ -539,21 +288,18 @@
     <div class="thankyou-sub">Our team will call you back within 2 hours during business hours (Mon–Fri, 8AM–4:30PM) to confirm your order and process payment.</div>
     <div class="thankyou-ref" id="refNumber"></div>
   </div>
-
 </div>
 
 <script>
   // ─── CONFIG ───────────────────────────────────────────────
   const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/Kp4CzDbfoX6h6r6CVJa2/webhook-trigger/c37293ab-3b5a-4c64-958e-616fa0ff956e';
+  const CLOUDINARY_CLOUD = 'dzeqapevo';
+  const CLOUDINARY_PRESET = 'tmt-forms';
   // ──────────────────────────────────────────────────────────
 
-  document.getElementById('form-date').textContent =
-    new Date().toLocaleDateString('en-CA', {year:'numeric', month:'short', day:'numeric'});
+  document.getElementById('form-date').textContent = new Date().toLocaleDateString('en-CA', {year:'numeric', month:'short', day:'numeric'});
 
-  // Set min date to today
-  document.getElementById('deliveryDate').min = new Date().toISOString().split('T')[0];
-
-  // ─── PRODUCTS ──────────────────────────────────────────────
+  // ─── PRODUCTS ─────────────────────────────────────────────
   const products = {
     boxes: [
       { id: 'small-box',    name: 'Small Box',         price: 3.99 },
@@ -568,10 +314,10 @@
       { id: 'tv-box-70',          name: 'TV Box (up to 70")',   price: 64.99 },
     ],
     supplies: [
-      { id: 'bubble-wrap',    name: 'Bubble Wrap',              price: 4.99 },
-      { id: 'tape',           name: 'Packing Tape',             price: 3.49 },
-      { id: 'packing-paper',  name: 'Packing Paper (25 lbs)',   price: 49.99 },
-      { id: 'stretch-wrap',   name: 'Stretch Wrap',             price: 24.99 },
+      { id: 'bubble-wrap',   name: 'Bubble Wrap',            price: 4.99 },
+      { id: 'tape',          name: 'Packing Tape',           price: 3.49 },
+      { id: 'packing-paper', name: 'Packing Paper (25 lbs)', price: 49.99 },
+      { id: 'stretch-wrap',  name: 'Stretch Wrap',           price: 24.99 },
     ],
     mattress: [
       { id: 'mattress-king',  name: 'Mattress Bag — King',  price: 19.99 },
@@ -581,6 +327,9 @@
   };
 
   const quantities = {};
+  const DELIVERY_FEE = 10.00;
+  let freeDelivery = false;
+  let streetValue = '';
 
   function buildGrid(items, containerId) {
     const container = document.getElementById(containerId);
@@ -640,9 +389,6 @@
     return selected;
   }
 
-  const DELIVERY_FEE = 10.00;
-  let freeDelivery = false;
-
   function toggleDelivery() {
     freeDelivery = document.getElementById('usingMovingService').checked;
     const badge = document.getElementById('deliveryBadge');
@@ -659,134 +405,332 @@
   function updateSummary() {
     const items = getSelectedItems();
     const summaryEmpty = document.getElementById('summaryEmpty');
-    const summaryItems = document.getElementById('summaryItems');
+    const summaryItemsEl = document.getElementById('summaryItems');
     const summaryTotals = document.getElementById('summaryTotals');
-
     if (items.length === 0) {
       summaryEmpty.style.display = 'block';
-      summaryItems.style.display = 'none';
+      summaryItemsEl.style.display = 'none';
       summaryTotals.style.display = 'none';
       return;
     }
-
     summaryEmpty.style.display = 'none';
-    summaryItems.style.display = 'block';
+    summaryItemsEl.style.display = 'block';
     summaryTotals.style.display = 'block';
-
-    summaryItems.innerHTML = items.map(item => `
+    summaryItemsEl.innerHTML = items.map(item => `
       <div class="summary-item">
         <span class="summary-item-name">${item.qty}× ${item.name}</span>
         <span class="summary-item-price">$${item.lineTotal.toFixed(2)}</span>
       </div>`).join('');
-
     const subtotal = items.reduce((sum, i) => sum + i.lineTotal, 0);
     const delivery = freeDelivery ? 0 : DELIVERY_FEE;
     const total = subtotal + delivery;
-
     document.getElementById('subtotalDisplay').textContent = '$' + subtotal.toFixed(2);
     document.getElementById('deliveryLabel').textContent = freeDelivery ? 'Delivery (FREE — moving customer)' : 'Delivery fee';
     document.getElementById('deliveryDisplay').textContent = freeDelivery ? 'FREE' : '$' + delivery.toFixed(2);
     document.getElementById('totalDisplay').textContent = '$' + total.toFixed(2);
   }
 
-  function generateRef() {
-    return 'BOX-' + Date.now().toString(36).toUpperCase();
+  // ─── GOOGLE MAPS AUTOCOMPLETE ─────────────────────────────
+  async function initAutocomplete() {
+    const inputEl = document.getElementById('street');
+    if (!inputEl) return;
+    try {
+      const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
+      const pac = new PlaceAutocompleteElement({ includedRegionCodes: ['ca'] });
+      pac.id = 'street-pac';
+      pac.dataset.street = '';
+      pac.style.width = '100%';
+      pac.style.display = 'block';
+      inputEl.parentNode.replaceChild(pac, inputEl);
+      pac.addEventListener('gmp-select', async (event) => {
+        try {
+          const place = event.placePrediction.toPlace();
+          await place.fetchFields({ fields: ['addressComponents'] });
+          let streetNum='', route='', city='', province='', postal='';
+          if (place.addressComponents) {
+            place.addressComponents.forEach(c => {
+              const types = c.types || [];
+              if (types.includes('street_number')) streetNum = c.longText || '';
+              if (types.includes('route')) route = c.longText || '';
+              if (types.includes('locality')) city = c.longText || '';
+              if (types.includes('administrative_area_level_1')) province = c.longText || '';
+              if (types.includes('postal_code')) postal = c.longText || '';
+            });
+          }
+          streetValue = (streetNum + ' ' + route).trim();
+          pac.dataset.street = streetValue;
+          pac.classList.add('valid-address');
+          const fill = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+          fill('city', city);
+          fill('province', province);
+          fill('postalCode', postal);
+        } catch(err) { console.log('Place select error:', err); }
+      });
+    } catch(e) { console.log('Places API error:', e); }
   }
 
+  window.addEventListener('load', () => { setTimeout(initAutocomplete, 1000); });
+
+  // ─── VALIDATION ───────────────────────────────────────────
+  const isValidEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+  const isValidPhone = p => p.replace(/\D/g,'').replace(/^1/,'').length === 10;
+
+  function setInvalid(id, errId, msg) {
+    const el=document.getElementById(id), er=document.getElementById(errId);
+    if(el) el.classList.add('invalid');
+    if(er&&msg){er.textContent=msg;er.classList.add('visible');}
+  }
+  function setValid(id, errId) {
+    const el=document.getElementById(id), er=document.getElementById(errId);
+    if(el) el.classList.remove('invalid');
+    if(er) er.classList.remove('visible');
+  }
+
+  ['firstName','lastName','phone','email','street','city','postalCode','deliveryDate'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => {
+      el.classList.remove('invalid');
+      const err = document.getElementById(id+'-error');
+      if (err) err.classList.remove('visible');
+    });
+  });
+
+  // ─── PDF GENERATION ───────────────────────────────────────
+  function generatePDF(payload) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const W = 210, margin = 15, colW = W - margin * 2;
+    let y = margin;
+
+    const addLine = (text, size=10, bold=false, color=[26,25,23]) => {
+      doc.setFontSize(size); doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setTextColor(...color);
+      const lines = doc.splitTextToSize(String(text), colW);
+      if (y + lines.length * (size * 0.4) > 280) { doc.addPage(); y = margin; }
+      doc.text(lines, margin, y); y += lines.length * (size * 0.45) + 1;
+    };
+
+    const addSection = (title) => {
+      y += 3; doc.setFillColor(245, 244, 240); doc.roundedRect(margin, y-4, colW, 8, 2, 2, 'F');
+      addLine(title, 11, true, [200, 64, 26]); y += 1;
+    };
+
+    const addField = (label, value) => {
+      if (!value) return;
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(107, 104, 96);
+      doc.text(label + ':', margin, y);
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(26, 25, 23);
+      const lines = doc.splitTextToSize(String(value), colW - 40);
+      doc.text(lines, margin + 40, y); y += Math.max(lines.length * 4.5, 5);
+    };
+
+    // Header
+    doc.setFillColor(200, 64, 26); doc.rect(0, 0, 210, 18, 'F');
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
+    doc.text('TWO MEN AND A TRUCK', margin, 10);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.text('Box & Supply Order Form', margin, 15);
+    doc.text(`Ref: ${payload.refNumber}  |  ${new Date(payload.submittedAt).toLocaleDateString('en-CA')}`, W - margin, 10, {align:'right'});
+    y = 24;
+
+    // Contact
+    addSection('CUSTOMER INFORMATION');
+    addField('Name', payload.contact.firstName + ' ' + payload.contact.lastName);
+    addField('Phone', payload.contact.phone);
+    addField('Email', payload.contact.email);
+
+    // Delivery
+    addSection('DELIVERY DETAILS');
+    const d = payload.delivery;
+    addField('Address', [d.street, d.unit, d.city, d.province, d.postalCode].filter(Boolean).join(', '));
+    addField('Date', d.date);
+    addField('Time', d.time || 'Any time');
+    addField('Moving Customer', d.usingMovingService ? 'Yes — FREE delivery' : 'No — $10.00 delivery fee');
+
+    // Order Items
+    addSection('ORDER ITEMS');
+    if (payload.items && payload.items.length > 0) {
+      payload.items.forEach(item => {
+        addLine(`  ${item.qty}x  ${item.name}  —  $${item.lineTotal.toFixed(2)}`, 9);
+      });
+      y += 3;
+      addLine(`Subtotal: $${payload.subtotal.toFixed(2)}`, 9, true);
+      addLine(`Delivery: ${payload.deliveryFee === 0 ? 'FREE' : '$' + payload.deliveryFee.toFixed(2)}`, 9, true);
+      y += 2;
+      doc.setFillColor(245, 244, 240); doc.roundedRect(margin, y-4, colW, 8, 2, 2, 'F');
+      addLine(`TOTAL: $${payload.total.toFixed(2)}`, 11, true, [200, 64, 26]);
+    }
+
+    // Notes
+    if (payload.notes) { addSection('DELIVERY NOTES'); addLine(payload.notes, 9); }
+
+    // Footer
+    doc.setFontSize(8); doc.setTextColor(156, 154, 148);
+    doc.text('210 Joseph Zatzman Dr., Dartmouth, NS B3B 1P4  |  902.701.9876  |  Info3028@twomen.ca', W/2, 290, {align:'center'});
+
+    return doc.output('blob');
+  }
+
+  // ─── UPLOAD TO CLOUDINARY ─────────────────────────────────
+  async function uploadToCloudinary(pdfBlob, refNumber, customerName) {
+    const safeName = (customerName || 'Customer').replace(/[^a-zA-Z0-9]/g, '_');
+    const publicId = `tmt-box-orders/${safeName}_${refNumber}`;
+    const formData = new FormData();
+    const pdfFile = new File([pdfBlob], `${safeName}_${refNumber}.pdf`, {type: 'application/pdf'});
+    formData.append('file', pdfFile);
+    formData.append('upload_preset', CLOUDINARY_PRESET);
+    formData.append('public_id', publicId);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
+      method: 'POST', body: formData
+    });
+    if (!res.ok) { const err = await res.json(); console.error('Cloudinary error:', err); throw new Error('Upload failed'); }
+    const data = await res.json();
+    return data.secure_url;
+  }
+
+  // ─── GENERATE REF ─────────────────────────────────────────
+  function generateRef() { return 'BOX-' + Date.now().toString(36).toUpperCase(); }
+
+  // ─── SUBMIT ───────────────────────────────────────────────
   async function submitForm() {
-    const fullName = document.getElementById('fullName').value.trim();
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const fullName = firstName + ' ' + lastName;
     const phone = document.getElementById('phone').value.trim();
     const email = document.getElementById('email').value.trim();
-    const street = document.getElementById('street').value.trim();
     const city = document.getElementById('city').value.trim();
     const postalCode = document.getElementById('postalCode').value.trim();
     const deliveryDate = document.getElementById('deliveryDate').value;
-
     const items = getSelectedItems();
 
-    const errorEl = document.getElementById('errorMsg');
-    errorEl.classList.remove('visible');
+    // Get street value from pac element or regular input
+    const pacEl = document.getElementById('street-pac');
+    const streetEl = document.getElementById('street');
+    const street = pacEl ? (pacEl.dataset.street || '') : (streetEl ? streetEl.value.trim() : '');
 
-    if (!fullName || !phone || !email) {
-      errorEl.textContent = 'Please fill in your name, phone number and email.';
-      errorEl.classList.add('visible');
-      return;
-    }
-    if (!street || !city || !postalCode) {
-      errorEl.textContent = 'Please fill in your delivery address.';
-      errorEl.classList.add('visible');
-      return;
-    }
-    if (!deliveryDate) {
-      errorEl.textContent = 'Please select a preferred delivery date.';
-      errorEl.classList.add('visible');
-      return;
-    }
+    document.getElementById('errorMsg').classList.remove('visible');
+    document.querySelectorAll('.invalid').forEach(e=>e.classList.remove('invalid'));
+    document.querySelectorAll('.field-error').forEach(e=>e.classList.remove('visible'));
+
+    let hasError = false;
+
+    if (!firstName) { setInvalid('firstName','firstName-error','First name is required'); hasError=true; }
+    else setValid('firstName','firstName-error');
+
+    if (!lastName) { setInvalid('lastName','lastName-error','Last name is required'); hasError=true; }
+    else setValid('lastName','lastName-error');
+
+    if (!phone) { setInvalid('phone','phone-error','Phone number is required'); hasError=true; }
+    else if (!isValidPhone(phone)) { setInvalid('phone','phone-error','Please enter a valid 10-digit phone number'); hasError=true; }
+    else setValid('phone','phone-error');
+
+    if (!email) { setInvalid('email','email-error','Email address is required'); hasError=true; }
+    else if (!isValidEmail(email)) { setInvalid('email','email-error','Please enter a valid email address'); hasError=true; }
+    else setValid('email','email-error');
+
+    if (!street) { setInvalid('street','street-error','Delivery address is required'); hasError=true; }
+    else setValid('street','street-error');
+
+    if (!city) { setInvalid('city','city-error','City is required'); hasError=true; }
+    else setValid('city','city-error');
+
+    if (!postalCode) { setInvalid('postalCode','postalCode-error','Postal code is required'); hasError=true; }
+    else setValid('postalCode','postalCode-error');
+
+    if (!deliveryDate) { setInvalid('deliveryDate','deliveryDate-error','Delivery date is required'); hasError=true; }
+    else setValid('deliveryDate','deliveryDate-error');
+
     if (items.length === 0) {
-      errorEl.textContent = 'Please select at least one item to order.';
-      errorEl.classList.add('visible');
+      document.getElementById('errorMsg').textContent = 'Please select at least one item to order.';
+      document.getElementById('errorMsg').classList.add('visible');
+      hasError = true;
+    }
+
+    if (hasError) {
+      const first = document.querySelector('.invalid');
+      if (first) first.scrollIntoView({behavior:'smooth', block:'center'});
       return;
     }
 
     const btn = document.getElementById('submitBtn');
     const btnText = document.getElementById('btn-text');
     const spinner = document.getElementById('spinner');
-    btn.disabled = true;
-    btnText.style.display = 'none';
-    spinner.style.display = 'block';
+    btn.disabled = true; btnText.style.display = 'none'; spinner.style.display = 'block';
 
     const subtotal = items.reduce((s, i) => s + i.lineTotal, 0);
     const delivery = freeDelivery ? 0 : DELIVERY_FEE;
     const refNumber = generateRef();
 
-    const payload = {
-      refNumber,
-      submittedAt: new Date().toISOString(),
-      contact: { fullName, phone, email },
-      delivery: {
-        street,
-        city,
-        province: document.getElementById('province').value,
-        postalCode,
-        unit: document.getElementById('unit').value,
-        building: document.getElementById('building').value,
-        date: deliveryDate,
-        time: document.getElementById('deliveryTime').value,
-        usingMovingService: freeDelivery,
-        deliveryFee: delivery
-      },
-      items,
-      subtotal,
-      deliveryFee: delivery,
-      total: subtotal + delivery,
-      notes: document.getElementById('notes').value.trim()
-    };
-
     try {
+      const payload = {
+        refNumber,
+        submittedAt: new Date().toISOString(),
+        contact: {
+          firstName,
+          lastName,
+          fullName,
+          phone: '+1' + phone.replace(/\D/g,'').replace(/^1/,''),
+          email
+        },
+        delivery: {
+          street,
+          city,
+          province: document.getElementById('province').value,
+          postalCode,
+          unit: document.getElementById('unit').value,
+          building: document.getElementById('building').value,
+          date: deliveryDate,
+          time: document.getElementById('deliveryTime').value,
+          usingMovingService: freeDelivery,
+          deliveryFee: delivery
+        },
+        items,
+        subtotal,
+        deliveryFee: delivery,
+        total: subtotal + delivery,
+        notes: document.getElementById('notes').value.trim()
+      };
+
+      // Generate PDF
+      btnText.textContent = 'Generating PDF...';
+      btnText.style.display = 'inline'; spinner.style.display = 'none';
+      const pdfBlob = generatePDF(payload);
+
+      // Upload to Cloudinary
+      btnText.textContent = 'Uploading...';
+      const pdfUrl = await uploadToCloudinary(pdfBlob, refNumber, fullName);
+      payload.pdfUrl = pdfUrl;
+
+      // Send to GHL
+      btnText.textContent = 'Submitting...';
       const res = await fetch(GHL_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+
       if (res.ok) {
         document.getElementById('main-form').style.display = 'none';
         document.getElementById('thankyouScreen').classList.add('visible');
         document.getElementById('refNumber').textContent = 'Reference: ' + refNumber;
-      } else { throw new Error(); }
-    } catch {
-      btn.disabled = false;
-      btnText.style.display = 'inline';
-      spinner.style.display = 'none';
-      errorEl.textContent = 'Something went wrong. Please try again or call us at +1 902-259-2498.';
-      errorEl.classList.add('visible');
+      } else throw new Error();
+    } catch(err) {
+      console.error(err);
+      btn.disabled = false; btnText.textContent = 'Submit Order'; btnText.style.display = 'inline'; spinner.style.display = 'none';
+      document.getElementById('errorMsg').textContent = 'Something went wrong. Please try again or call us at +1 902-259-2498.';
+      document.getElementById('errorMsg').classList.add('visible');
     }
   }
 
-  // Build all product grids
+  // Build product grids
   buildGrid(products.boxes, 'boxes-grid');
   buildGrid(products.tv, 'tv-grid');
   buildGrid(products.supplies, 'supplies-grid');
   buildGrid(products.mattress, 'mattress-grid');
+
+  // Set min date to today using local timezone
+  const now = new Date();
+  const today = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+  document.getElementById('deliveryDate').setAttribute('min', today);
 </script>
 </body>
 </html>
