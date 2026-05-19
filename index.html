@@ -94,6 +94,35 @@
   .pac-container { border-radius: var(--radius-sm); border: 0.5px solid var(--border2); box-shadow: 0 4px 12px rgba(0,0,0,0.1); font-family: 'DM Sans', sans-serif; font-size: 14px; }
   .pac-item { padding: 8px 12px; cursor: pointer; }
   .pac-item:hover { background: var(--surface2); }
+
+  /* Style PlaceAutocompleteElement to match form inputs */
+  gmp-placeautocomplete {
+    width: 100%;
+    display: block;
+  }
+  gmp-placeautocomplete::part(input) {
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 14px !important;
+    color: #1a1917 !important;
+    background: #f9f8f5 !important;
+    border: 0.5px solid #ccc9bc !important;
+    border-radius: 6px !important;
+    padding: 9px 11px !important;
+    outline: none !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    height: auto !important;
+    box-shadow: none !important;
+  }
+  gmp-placeautocomplete::part(input):focus {
+    border-color: #1a4fa0 !important;
+    box-shadow: 0 0 0 3px #eef2fb !important;
+    background: #fff !important;
+  }
+  gmp-placeautocomplete.valid-address::part(input) {
+    border-color: #1a7a3c !important;
+    box-shadow: 0 0 0 3px #edf7f1 !important;
+  }
   @media print { body { background: #fff; padding: 0; } .btn-row, .submit-note { display: none; } .room-content { display: block !important; } .card { box-shadow: none; border: 1px solid #ccc; } }
   @media (max-width: 560px) { .field-row.two, .field-row.three { grid-template-columns: 1fr; } .items-grid { grid-template-columns: 1fr; } header { flex-direction: column; gap: 12px; } }
 </style>
@@ -223,7 +252,6 @@
 
   // ─── GOOGLE MAPS AUTOCOMPLETE (New API) ──────────────────
   async function initAutocomplete() {
-    // Called on page load — sets up first address fields
     await setupAC('pickup', 1);
     await setupAC('dropoff', 1);
   }
@@ -231,37 +259,56 @@
   async function setupAC(type, n) {
     const inputEl = document.getElementById(type+'-street-'+n);
     if (!inputEl || inputEl.dataset.acInit) return;
-    inputEl.dataset.acInit = '1'; // Prevent double init
+    inputEl.dataset.acInit = '1';
     try {
-      await google.maps.importLibrary("places");
-      const { Autocomplete } = google.maps.places;
-      const ac = new Autocomplete(inputEl, {
+      const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
+
+      // Create autocomplete element
+      const pac = new PlaceAutocompleteElement({
         componentRestrictions: { country: 'ca' },
-        fields: ['address_components'],
         types: ['address']
       });
-      ac.addListener('place_changed', () => {
-        const place = ac.getPlace();
-        if (!place.address_components) return;
+
+      // Match styling to our form inputs
+      pac.style.cssText = `
+        width: 100%;
+        display: block;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+      `;
+
+      // Replace input with pac element
+      inputEl.parentNode.replaceChild(pac, inputEl);
+
+      // When place is selected fill other fields
+      pac.addEventListener('gmp-placeselect', async ({ place }) => {
+        await place.fetchFields({ fields: ['addressComponents', 'displayName'] });
         let streetNum='', route='', city='', province='', postal='';
-        place.address_components.forEach(c => {
-          if (c.types.includes('street_number')) streetNum = c.long_name;
-          if (c.types.includes('route')) route = c.long_name;
-          if (c.types.includes('locality')) city = c.long_name;
-          if (c.types.includes('administrative_area_level_1')) province = c.long_name;
-          if (c.types.includes('postal_code')) postal = c.long_name;
+        place.addressComponents.forEach(c => {
+          if (c.types.includes('street_number')) streetNum = c.longText;
+          if (c.types.includes('route')) route = c.longText;
+          if (c.types.includes('locality')) city = c.longText;
+          if (c.types.includes('administrative_area_level_1')) province = c.longText;
+          if (c.types.includes('postal_code')) postal = c.longText;
         });
-        // Fill street number + route into street field
-        if (streetNum || route) inputEl.value = (streetNum + ' ' + route).trim();
+        // Store street value for form submission
+        pac.dataset.street = (streetNum + ' ' + route).trim();
+        pac.id = type+'-street-'+n;
+        pac.classList.add('valid-address');
         const s = (id, v) => { const x=document.getElementById(id); if(x) x.value=v; };
         s(type+'-city-'+n, city);
         s(type+'-province-'+n, province);
         s(type+'-postal-'+n, postal);
-        inputEl.classList.remove('invalid');
-        inputEl.classList.add('valid-address');
       });
+
+      // Store reference for getAddresses
+      pac.id = type+'-street-'+n;
+      pac.dataset.street = '';
+
     } catch(e) {
       console.log('Places API error:', e);
+      // Show original input as fallback
+      inputEl.dataset.acInit = '';
     }
   }
 
@@ -307,7 +354,13 @@
     const results = [];
     document.getElementById(type+'-addrs').querySelectorAll('.addr-block').forEach((block, i) => {
       const n = i+1;
-      const g = id => (document.getElementById(id)||{}).value||'';
+      const g = id => {
+        const el = document.getElementById(id);
+        if (!el) return '';
+        // If it's a PlaceAutocompleteElement use dataset.street
+        if (el.tagName && el.tagName.toLowerCase() === 'gmp-placeautocomplete') return el.dataset.street || '';
+        return el.value || '';
+      };
       results.push({
         street: g(`${type}-street-${n}`), city: g(`${type}-city-${n}`),
         province: g(`${type}-province-${n}`), postalCode: g(`${type}-postal-${n}`),
@@ -398,7 +451,7 @@
     return text.trim();
   }
 
-  function generateRef() { return 'TMT-' + Date.now().toString(36).toUpperCase(); }
+  function generateRef() { return 'TMAAT-' + Date.now().toString(36).toUpperCase(); }
 
   // ─── VALIDATION ───────────────────────────────────────────
   const isValidEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
