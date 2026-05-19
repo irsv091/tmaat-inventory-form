@@ -223,59 +223,51 @@
 
   // ─── GOOGLE MAPS AUTOCOMPLETE (New API) ──────────────────
   async function initAutocomplete() {
-    await setupAC('pickup');
-    await setupAC('dropoff');
+    // Called on page load — sets up first address fields
+    await setupAC('pickup', 1);
+    await setupAC('dropoff', 1);
   }
 
-  async function setupAC(type) {
-    const inputEl = document.getElementById(type+'-street-1');
-    if (!inputEl) return;
+  async function setupAC(type, n) {
+    const inputEl = document.getElementById(type+'-street-'+n);
+    if (!inputEl || inputEl.dataset.acInit) return;
+    inputEl.dataset.acInit = '1'; // Prevent double init
     try {
-      const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
-      const wrapper = inputEl.parentElement;
-
-      // Create the new autocomplete element
-      const pac = new PlaceAutocompleteElement({
+      await google.maps.importLibrary("places");
+      const { Autocomplete } = google.maps.places;
+      const ac = new Autocomplete(inputEl, {
         componentRestrictions: { country: 'ca' },
+        fields: ['address_components'],
         types: ['address']
       });
-
-      // Style it to match our form
-      pac.style.width = '100%';
-      pac.style.display = 'block';
-
-      // Hide the original input and replace with pac element
-      inputEl.style.display = 'none';
-      wrapper.insertBefore(pac, inputEl);
-
-      pac.addEventListener('gmp-placeselect', async ({ place }) => {
-        await place.fetchFields({ fields: ['addressComponents'] });
-        let street='', city='', province='', postal='';
-        place.addressComponents.forEach(c => {
-          if (c.types.includes('street_number')) street = c.longText + ' ';
-          if (c.types.includes('route')) street += c.longText;
-          if (c.types.includes('locality')) city = c.longText;
-          if (c.types.includes('administrative_area_level_1')) province = c.longText;
-          if (c.types.includes('postal_code')) postal = c.longText;
+      ac.addListener('place_changed', () => {
+        const place = ac.getPlace();
+        if (!place.address_components) return;
+        let streetNum='', route='', city='', province='', postal='';
+        place.address_components.forEach(c => {
+          if (c.types.includes('street_number')) streetNum = c.long_name;
+          if (c.types.includes('route')) route = c.long_name;
+          if (c.types.includes('locality')) city = c.long_name;
+          if (c.types.includes('administrative_area_level_1')) province = c.long_name;
+          if (c.types.includes('postal_code')) postal = c.long_name;
         });
-        inputEl.value = street.trim();
+        // Fill street number + route into street field
+        if (streetNum || route) inputEl.value = (streetNum + ' ' + route).trim();
         const s = (id, v) => { const x=document.getElementById(id); if(x) x.value=v; };
-        s(type+'-city-1', city);
-        s(type+'-province-1', province);
-        s(type+'-postal-1', postal);
+        s(type+'-city-'+n, city);
+        s(type+'-province-'+n, province);
+        s(type+'-postal-'+n, postal);
         inputEl.classList.remove('invalid');
         inputEl.classList.add('valid-address');
       });
     } catch(e) {
-      // Fallback — show original input if new API fails
-      console.log('Places API fallback:', e);
+      console.log('Places API error:', e);
     }
   }
 
-  // Initialize autocomplete on page load
+  // Initialize on load
   window.addEventListener('load', () => {
-    if (window.google) initAutocomplete();
-    else setTimeout(() => { if (window.google) initAutocomplete(); }, 2000);
+    setTimeout(initAutocomplete, 1000);
   });
 
   // ─── ADDRESSES ────────────────────────────────────────────
@@ -291,10 +283,10 @@
     div.innerHTML = `
       <div class="addr-label">Address ${n}</div>
       ${n>1 ? `<button class="remove-addr" type="button" onclick="removeAddr('${type}',${n})">Remove</button>` : ''}
-      <div class="field-row"><div class="field"><label class="field-label">Street address</label><input type="text" id="${type}-street-${n}" placeholder="123 Main Street" autocomplete="off"></div></div>
+      <div class="field-row"><div class="field"><label class="field-label">Street address</label><input type="text" id="${type}-street-${n}" placeholder="Start typing your address..." autocomplete="off"></div></div>
       <div class="field-row three">
-        <div class="field"><label class="field-label">City</label><input type="text" id="${type}-city-${n}" placeholder="Halifax"></div>
-        <div class="field"><label class="field-label">Province</label><input type="text" id="${type}-province-${n}" value="Nova Scotia"></div>
+        <div class="field"><label class="field-label">City</label><input type="text" id="${type}-city-${n}" placeholder="City"></div>
+        <div class="field"><label class="field-label">Province</label><input type="text" id="${type}-province-${n}" placeholder="Province"></div>
         <div class="field"><label class="field-label">Postal code</label><input type="text" id="${type}-postal-${n}" placeholder="B3H 1A1"></div>
       </div>
       <div class="field-row two">
@@ -302,7 +294,8 @@
         <div class="field"><label class="field-label">Building name (optional)</label><input type="text" id="${type}-building-${n}" placeholder="Harbour View Condos"></div>
       </div>`;
     container.appendChild(div);
-    if (window.google && n === 1) setTimeout(() => setupAC(type), 100);
+    // Initialize autocomplete for new address block
+    if (window.google) setTimeout(() => setupAC(type, n), 200);
   }
 
   function removeAddr(type, n) {
@@ -405,7 +398,7 @@
     return text.trim();
   }
 
-  function generateRef() { return 'TMAAT-' + Date.now().toString(36).toUpperCase(); }
+  function generateRef() { return 'TMT-' + Date.now().toString(36).toUpperCase(); }
 
   // ─── VALIDATION ───────────────────────────────────────────
   const isValidEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
