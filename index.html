@@ -249,7 +249,7 @@
   // ─── CONFIG ───────────────────────────────────────────────
   const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/Kp4CzDbfoX6h6r6CVJa2/webhook-trigger/3f328cca-e5d3-4127-9667-b295d7c0b908';
   const CLOUDINARY_CLOUD = 'dzeqapevo';
-  const CLOUDINARY_PRESET = 'tmt_forms';
+  const CLOUDINARY_PRESET = 'tmaat_forms';
   // ──────────────────────────────────────────────────────────
 
   // ─── GENERATE PDF ─────────────────────────────────────────
@@ -358,15 +358,19 @@
     const formData = new FormData();
     formData.append('file', pdfBlob, `${refNumber}.pdf`);
     formData.append('upload_preset', CLOUDINARY_PRESET);
-    formData.append('folder', 'tmaat_inventory_forms');
-    formData.append('resource_type', 'raw');
+    const safeName = fullName.replace(/[^a-zA-Z0-9]/g, '_');
+formData.append('public_id', `tmaat_inventory_forms/${safeName}_${refNumber}`);
 
     const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`, {
       method: 'POST',
       body: formData
     });
 
-    if (!res.ok) throw new Error('Cloudinary upload failed');
+    if (!res.ok) {
+      const err = await res.json();
+      console.error('Cloudinary error:', err);
+      throw new Error('Cloudinary upload failed');
+    }
     const data = await res.json();
     return data.secure_url;
   }
