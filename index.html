@@ -375,7 +375,7 @@
     }
     const data = await res.json();
     // Add .pdf extension to secure_url so browsers open it correctly
-    return data.secure_url + '.pdf';
+    return data.secure_url;
   }
 
   document.getElementById('form-date').textContent = new Date().toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'});
