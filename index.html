@@ -263,39 +263,37 @@
     try {
       const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
 
-      // Create autocomplete element
+      // Create autocomplete element with new API parameters
       const pac = new PlaceAutocompleteElement({
-        componentRestrictions: { country: 'ca' },
-        types: ['address']
+        includedRegionCodes: ['ca'],
+        includedPrimaryTypes: ['address']
       });
 
       // Set ID and data before replacing
       pac.id = type+'-street-'+n;
       pac.dataset.street = '';
-      pac.dataset.type = type;
-      pac.dataset.n = n;
       pac.style.width = '100%';
       pac.style.display = 'block';
 
       // Replace input with pac element
       inputEl.parentNode.replaceChild(pac, inputEl);
 
-      // When place is selected fill other fields
-      pac.addEventListener('gmp-placeselect', async (event) => {
+      // Use new gmp-select event with placePrediction
+      pac.addEventListener('gmp-select', async (event) => {
         try {
-          const place = event.place;
+          const place = event.placePrediction.toPlace();
           await place.fetchFields({ fields: ['addressComponents'] });
-          
+
           let streetNum='', route='', city='', province='', postal='';
-          
+
           if (place.addressComponents) {
             place.addressComponents.forEach(c => {
               const types = c.types || [];
-              if (types.includes('street_number')) streetNum = c.longText || c.long_name || '';
-              if (types.includes('route')) route = c.longText || c.long_name || '';
-              if (types.includes('locality')) city = c.longText || c.long_name || '';
-              if (types.includes('administrative_area_level_1')) province = c.longText || c.long_name || '';
-              if (types.includes('postal_code')) postal = c.longText || c.long_name || '';
+              if (types.includes('street_number')) streetNum = c.longText || '';
+              if (types.includes('route')) route = c.longText || '';
+              if (types.includes('locality')) city = c.longText || '';
+              if (types.includes('administrative_area_level_1')) province = c.longText || '';
+              if (types.includes('postal_code')) postal = c.longText || '';
             });
           }
 
@@ -303,16 +301,15 @@
           pac.dataset.street = street;
           pac.classList.add('valid-address');
 
-          // Fill in city, province, postal code
           const fill = (id, val) => {
             const el = document.getElementById(id);
-            if (el) { el.value = val; el.dispatchEvent(new Event('input')); }
+            if (el) el.value = val;
           };
           fill(type+'-city-'+n, city);
           fill(type+'-province-'+n, province);
           fill(type+'-postal-'+n, postal);
 
-          console.log('Address selected:', { street, city, province, postal });
+          console.log('Address filled:', { street, city, province, postal });
         } catch(err) {
           console.log('Place select error:', err);
         }
