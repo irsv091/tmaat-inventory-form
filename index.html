@@ -356,7 +356,7 @@
   // ─── UPLOAD TO CLOUDINARY ─────────────────────────────────
   async function uploadToCloudinary(pdfBlob, refNumber, customerName) {
     const safeName = (customerName || 'Customer').replace(/[^a-zA-Z0-9]/g, '_');
-    const publicId = `tmt_inventory_forms/${safeName}_${refNumber}`;
+    const publicId = `tmt-inventory-forms/${safeName}_${refNumber}`;
 
     const formData = new FormData();
     formData.append('file', pdfBlob, `${safeName}_${refNumber}.pdf`);
@@ -679,7 +679,7 @@
       btnText.textContent = 'Uploading...';
       btnText.style.display = 'inline';
       spinner.style.display = 'none';
-      const pdfUrl = await uploadToCloudinary(pdfBlob, refNumber);
+      const pdfUrl = await uploadToCloudinary(pdfBlob, refNumber, fullName);
       payload.pdfUrl = pdfUrl;
 
       // Step 4 — Send to GHL
