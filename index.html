@@ -245,7 +245,7 @@
 
 <script>
   // ─── CONFIG ───────────────────────────────────────────────
-  const GHL_WEBHOOK_URL = 'https://hook.us2.make.com/hvg552ubnozevw3sv843weihdskt4c6n';
+  const GHL_WEBHOOK_URL = 'YOUR_GHL_WEBHOOK_URL_HERE';
   // ──────────────────────────────────────────────────────────
 
   document.getElementById('form-date').textContent = new Date().toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'});
@@ -269,45 +269,57 @@
         types: ['address']
       });
 
-      // Match styling to our form inputs
-      pac.style.cssText = `
-        width: 100%;
-        display: block;
-        font-family: 'DM Sans', sans-serif;
-        font-size: 14px;
-      `;
+      // Set ID and data before replacing
+      pac.id = type+'-street-'+n;
+      pac.dataset.street = '';
+      pac.dataset.type = type;
+      pac.dataset.n = n;
+      pac.style.width = '100%';
+      pac.style.display = 'block';
 
       // Replace input with pac element
       inputEl.parentNode.replaceChild(pac, inputEl);
 
       // When place is selected fill other fields
-      pac.addEventListener('gmp-placeselect', async ({ place }) => {
-        await place.fetchFields({ fields: ['addressComponents', 'displayName'] });
-        let streetNum='', route='', city='', province='', postal='';
-        place.addressComponents.forEach(c => {
-          if (c.types.includes('street_number')) streetNum = c.longText;
-          if (c.types.includes('route')) route = c.longText;
-          if (c.types.includes('locality')) city = c.longText;
-          if (c.types.includes('administrative_area_level_1')) province = c.longText;
-          if (c.types.includes('postal_code')) postal = c.longText;
-        });
-        // Store street value for form submission
-        pac.dataset.street = (streetNum + ' ' + route).trim();
-        pac.id = type+'-street-'+n;
-        pac.classList.add('valid-address');
-        const s = (id, v) => { const x=document.getElementById(id); if(x) x.value=v; };
-        s(type+'-city-'+n, city);
-        s(type+'-province-'+n, province);
-        s(type+'-postal-'+n, postal);
+      pac.addEventListener('gmp-placeselect', async (event) => {
+        try {
+          const place = event.place;
+          await place.fetchFields({ fields: ['addressComponents'] });
+          
+          let streetNum='', route='', city='', province='', postal='';
+          
+          if (place.addressComponents) {
+            place.addressComponents.forEach(c => {
+              const types = c.types || [];
+              if (types.includes('street_number')) streetNum = c.longText || c.long_name || '';
+              if (types.includes('route')) route = c.longText || c.long_name || '';
+              if (types.includes('locality')) city = c.longText || c.long_name || '';
+              if (types.includes('administrative_area_level_1')) province = c.longText || c.long_name || '';
+              if (types.includes('postal_code')) postal = c.longText || c.long_name || '';
+            });
+          }
+
+          const street = (streetNum + ' ' + route).trim();
+          pac.dataset.street = street;
+          pac.classList.add('valid-address');
+
+          // Fill in city, province, postal code
+          const fill = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) { el.value = val; el.dispatchEvent(new Event('input')); }
+          };
+          fill(type+'-city-'+n, city);
+          fill(type+'-province-'+n, province);
+          fill(type+'-postal-'+n, postal);
+
+          console.log('Address selected:', { street, city, province, postal });
+        } catch(err) {
+          console.log('Place select error:', err);
+        }
       });
 
-      // Store reference for getAddresses
-      pac.id = type+'-street-'+n;
-      pac.dataset.street = '';
-
     } catch(e) {
-      console.log('Places API error:', e);
-      // Show original input as fallback
+      console.log('Places API setup error:', e);
       inputEl.dataset.acInit = '';
     }
   }
