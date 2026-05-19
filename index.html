@@ -9,6 +9,8 @@
   (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
   ({key: "AIzaSyAuYYpVJSDAj45RzXZ757UxpfIOyO96zZg", v: "weekly"});
 </script>
+<!-- jsPDF for PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -245,8 +247,129 @@
 
 <script>
   // ─── CONFIG ───────────────────────────────────────────────
-  const GHL_WEBHOOK_URL = 'https://hook.us2.make.com/hvg552ubnozevw3sv843weihdskt4c6n';
+  const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/Kp4CzDbfoX6h6r6CVJa2/webhook-trigger/3f328cca-e5d3-4127-9667-b295d7c0b908';
+  const CLOUDINARY_CLOUD = 'dzeqapevo';
+  const CLOUDINARY_PRESET = 'tmaat_forms';
   // ──────────────────────────────────────────────────────────
+
+  // ─── GENERATE PDF ─────────────────────────────────────────
+  function generatePDF(payload) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const W = 210, margin = 15, colW = W - margin * 2;
+    let y = margin;
+
+    const addLine = (text, size=10, bold=false, color=[26,25,23]) => {
+      doc.setFontSize(size);
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+      doc.setTextColor(...color);
+      const lines = doc.splitTextToSize(text, colW);
+      if (y + lines.length * (size * 0.4) > 280) { doc.addPage(); y = margin; }
+      doc.text(lines, margin, y);
+      y += lines.length * (size * 0.45) + 1;
+    };
+
+    const addSection = (title) => {
+      y += 3;
+      doc.setFillColor(245, 244, 240);
+      doc.roundedRect(margin, y-4, colW, 8, 2, 2, 'F');
+      addLine(title, 11, true, [200, 64, 26]);
+      y += 1;
+    };
+
+    const addField = (label, value) => {
+      if (!value) return;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(107, 104, 96);
+      doc.text(label + ':', margin, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(26, 25, 23);
+      const lines = doc.splitTextToSize(value, colW - 35);
+      doc.text(lines, margin + 35, y);
+      y += Math.max(lines.length * 4.5, 5);
+    };
+
+    // Header
+    doc.setFillColor(200, 64, 26);
+    doc.rect(0, 0, 210, 18, 'F');
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('TWO MEN AND A TRUCK', margin, 10);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Moving Inventory Form', margin, 15);
+    doc.setFontSize(9);
+    doc.text(`Ref: ${payload.refNumber}  |  ${new Date(payload.submittedAt).toLocaleDateString('en-CA')}`, W - margin, 10, {align:'right'});
+    y = 24;
+
+    // Contact
+    addSection('CUSTOMER INFORMATION');
+    addField('Name', payload.contact.fullName);
+    addField('Phone', payload.contact.phone);
+    addField('Email', payload.contact.email);
+
+    // Pickup
+    addSection('PICKUP DETAILS');
+    if (payload.pickup.addresses && payload.pickup.addresses[0]) {
+      const a = payload.pickup.addresses[0];
+      addField('Address', [a.street, a.unit, a.city, a.province, a.postalCode].filter(Boolean).join(', '));
+    }
+    addField('Date', payload.pickup.date);
+    addField('Time', payload.pickup.time);
+
+    // Dropoff
+    addSection('DROP-OFF DETAILS');
+    if (payload.dropoff.addresses && payload.dropoff.addresses[0]) {
+      const a = payload.dropoff.addresses[0];
+      addField('Address', [a.street, a.unit, a.city, a.province, a.postalCode].filter(Boolean).join(', '));
+    }
+    addField('Date', payload.dropoff.date);
+    addField('Time', payload.dropoff.time);
+
+    // Inventory
+    if (payload.inventoryText) {
+      addSection('INVENTORY');
+      const inventoryLines = payload.inventoryText.split('\n');
+      inventoryLines.forEach(line => {
+        if (!line.trim()) { y += 2; return; }
+        const isRoom = line.endsWith(':') && !line.startsWith(' ');
+        addLine(line, isRoom ? 10 : 9, isRoom);
+      });
+    }
+
+    // Notes
+    if (payload.notes) {
+      addSection('NOTES');
+      addLine(payload.notes, 9);
+    }
+
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(156, 154, 148);
+    doc.text('210 Joseph Zatzman Dr., Dartmouth, NS B3B 1P4  |  902.701.9876  |  Info3028@twomen.ca', W/2, 290, {align:'center'});
+
+    return doc.output('blob');
+  }
+
+  // ─── UPLOAD TO CLOUDINARY ─────────────────────────────────
+  async function uploadToCloudinary(pdfBlob, refNumber) {
+    const formData = new FormData();
+    formData.append('file', pdfBlob, `${refNumber}.pdf`);
+    formData.append('upload_preset', CLOUDINARY_PRESET);
+    formData.append('folder', 'tmaat_inventory_forms');
+    formData.append('resource_type', 'raw');
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!res.ok) throw new Error('Cloudinary upload failed');
+    const data = await res.json();
+    return data.secure_url;
+  }
 
   document.getElementById('form-date').textContent = new Date().toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'});
 
@@ -524,30 +647,50 @@
     const refNumber = generateRef();
     const inventoryData = getInventory();
 
-    const payload = {
-      refNumber,
-      submittedAt: new Date().toISOString(),
-      contact: {
-        fullName,
-        phone: '+1' + phone.replace(/\D/g,'').replace(/^1/,''),
-        email
-      },
-      pickup: { addresses: getAddresses('pickup'), date: pickupDate, time: document.getElementById('pickupTime').value },
-      dropoff: { addresses: getAddresses('dropoff'), date: document.getElementById('dropoffDate').value, time: document.getElementById('dropoffTime').value },
-      inventory: inventoryData,
-      inventoryText: formatInventory(inventoryData),
-      notes: document.getElementById('notes').value.trim()
-    };
-
     try {
-      const res = await fetch(GHL_WEBHOOK_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+      // Step 1 — Build payload
+      const payload = {
+        refNumber,
+        submittedAt: new Date().toISOString(),
+        contact: {
+          fullName,
+          phone: '+1' + phone.replace(/\D/g,'').replace(/^1/,''),
+          email
+        },
+        pickup: { addresses: getAddresses('pickup'), date: pickupDate, time: document.getElementById('pickupTime').value },
+        dropoff: { addresses: getAddresses('dropoff'), date: document.getElementById('dropoffDate').value, time: document.getElementById('dropoffTime').value },
+        inventory: inventoryData,
+        inventoryText: formatInventory(inventoryData),
+        notes: document.getElementById('notes').value.trim()
+      };
+
+      // Step 2 — Generate PDF
+      btnText.textContent = 'Generating PDF...';
+      const pdfBlob = generatePDF(payload);
+
+      // Step 3 — Upload to Cloudinary
+      btnText.textContent = 'Uploading...';
+      btnText.style.display = 'inline';
+      spinner.style.display = 'none';
+      const pdfUrl = await uploadToCloudinary(pdfBlob, refNumber);
+      payload.pdfUrl = pdfUrl;
+
+      // Step 4 — Send to GHL
+      btnText.textContent = 'Submitting...';
+      const res = await fetch(GHL_WEBHOOK_URL, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      });
+
       if (res.ok) {
         document.getElementById('main-form').style.display='none';
         document.getElementById('thankyouScreen').classList.add('visible');
         document.getElementById('refNumber').textContent='Reference: '+refNumber;
       } else throw new Error();
-    } catch {
-      btn.disabled=false; btnText.style.display='inline'; spinner.style.display='none';
+    } catch(err) {
+      console.error(err);
+      btn.disabled=false; btnText.textContent='Submit Inventory Form'; btnText.style.display='inline'; spinner.style.display='none';
       document.getElementById('errorMsg').textContent='Something went wrong. Please try again or call us at +1 902-259-2498.';
       document.getElementById('errorMsg').classList.add('visible');
     }
