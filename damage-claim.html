@@ -609,14 +609,18 @@
         if (item.estimatedValue) addField('Est. Value', '$' + item.estimatedValue + ' CAD');
         if (item.natureOfDamage) addField('Damage Type', item.natureOfDamage);
         addField('Location', item.address + (item.addressType === 'pickup' ? ' (Pickup)' : item.addressType === 'dropoff' ? ' (Dropoff)' : ''));
-        if (item.photoCount > 0) {
-         addField('Photos', item.photoCount + ' photo(s) uploaded');
-        if (payload.photoUrls && payload.photoUrls[`item-${i+1}`]) {
-          payload.photoUrls[`item-${i+1}`].forEach((url, idx) => {
-          addField(`Photo ${idx+1}`, url);
-    });
-  }
-}
+        if (payload.photoBase64 && payload.photoBase64[`item-${i+1}`] && payload.photoBase64[`item-${i+1}`].length > 0) {
+          addLine('Photos:', 9, true);
+          y += 2;
+          payload.photoBase64[`item-${i+1}`].forEach(base64 => {
+            try {
+              if (y + 55 > 280) { doc.addPage(); y = margin; }
+              const imgType = base64.includes('png') ? 'PNG' : 'JPEG';
+              doc.addImage(base64, imgType, margin, y, 80, 50);
+              y += 55;
+            } catch(e) { console.log('Photo embed error:', e); }
+          });
+        }
       });
     }
 
@@ -626,14 +630,18 @@
         if (prop.natureOfDamage) addField('Damage Type', prop.natureOfDamage);
         if (prop.description) addLine(prop.description, 9);
         addField('Location', prop.address + (prop.addressType === 'pickup' ? ' (Pickup)' : prop.addressType === 'dropoff' ? ' (Dropoff)' : ''));
-        if (prop.photoCount > 0) {
-         addField('Photos', prop.photoCount + ' photo(s) uploaded');
-        if (payload.photoUrls && payload.photoUrls[`prop-${i+1}`]) {
-         payload.photoUrls[`prop-${i+1}`].forEach((url, idx) => {
-         addField(`Photo ${idx+1}`, url);
-    });
-  }
-}
+        if (payload.photoBase64 && payload.photoBase64[`prop-${i+1}`] && payload.photoBase64[`prop-${i+1}`].length > 0) {
+          addLine('Photos:', 9, true);
+          y += 2;
+          payload.photoBase64[`prop-${i+1}`].forEach(base64 => {
+            try {
+              if (y + 55 > 280) { doc.addPage(); y = margin; }
+              const imgType = base64.includes('png') ? 'PNG' : 'JPEG';
+              doc.addImage(base64, imgType, margin, y, 80, 50);
+              y += 55;
+            } catch(e) { console.log('Photo embed error:', e); }
+          });
+        }
       });
     }
 
@@ -669,6 +677,23 @@
       }
     }
     return urls;
+  }
+
+  async function getPhotoBase64() {
+    const base64Data = {};
+    for (const [key, files] of Object.entries(photoFiles)) {
+      if (!files || !files.length) continue;
+      base64Data[key] = [];
+      for (const file of files) {
+        const base64 = await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = e => resolve(e.target.result);
+          reader.readAsDataURL(file);
+        });
+        base64Data[key].push(base64);
+      }
+    }
+    return base64Data;
   }
 
   function generateRef() { return 'CLM-' + Date.now().toString(36).toUpperCase(); }
@@ -725,8 +750,11 @@
         notes: document.getElementById('notes').value.trim()
       };
 
-      btnText.textContent = 'Uploading photos...';
+      btnText.textContent = 'Processing photos...';
       btnText.style.display = 'inline'; spinner.style.display = 'none';
+      payload.photoBase64 = await getPhotoBase64();
+
+      btnText.textContent = 'Uploading photos...';
       payload.photoUrls = await uploadAllPhotos(refNumber, fullName);
 
       btnText.textContent = 'Generating PDF...';
