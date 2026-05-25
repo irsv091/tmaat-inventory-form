@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Damage Claim Form — Two Men and a Truck</title>
+<script>
+  (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+  ({key: "AIzaSyAuYYpVJSDAj45RzXZ757UxpfIOyO96zZg", v: "weekly"});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f4f0; --surface: #ffffff; --surface2: #f9f8f5;
+    --border: #e2e0d8; --border2: #ccc9bc; --text: #1a1917;
+    --text2: #6b6860; --text3: #9c9a94; --accent: #c8401a;
+    --accent-light: #fdf0ec; --blue: #1a4fa0; --blue-light: #eef2fb;
+    --green: #1a7a3c; --green-light: #edf7f1;
+    --radius: 10px; --radius-sm: 6px;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem 4rem; }
+  .page-wrap { max-width: 760px; margin: 0 auto; }
+  header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1.5px solid var(--border2); }
+  .logo-name { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  h1 { font-size: 26px; font-weight: 600; line-height: 1.2; }
+  .header-sub { font-size: 14px; color: var(--text2); margin-top: 4px; }
+  .form-id { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 6px 10px; text-align: right; }
+  .alert-banner { background: var(--accent-light); border: 0.5px solid #f5c4b8; border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 1.5rem; font-size: 13px; color: var(--accent); }
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; }
+  .card-title { font-size: 15px; font-weight: 600; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px; }
+  .card-title .icon { width: 28px; height: 28px; border-radius: 7px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .card-title .tag { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; color: var(--blue); background: var(--blue-light); padding: 3px 8px; border-radius: 4px; }
+  .field-row { display: grid; gap: 12px; margin-bottom: 12px; }
+  .field-row.two { grid-template-columns: 1fr 1fr; }
+  .field-row.three { grid-template-columns: 1fr 1fr 1fr; }
+  .field-row:last-child { margin-bottom: 0; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  label.field-label { font-size: 12px; font-weight: 500; color: var(--text2); }
+  .opt { font-size: 10px; color: var(--text3); font-weight: 400; margin-left: 4px; }
+  input[type=text], input[type=email], input[type=tel], input[type=date], input[type=number], select, textarea {
+    font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text);
+    background: var(--surface2); border: 0.5px solid var(--border2);
+    border-radius: var(--radius-sm); padding: 9px 11px; outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s; width: 100%;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-light); background: #fff; }
+  input.invalid, select.invalid, textarea.invalid { border-color: var(--accent) !important; box-shadow: 0 0 0 3px var(--accent-light) !important; background: #fff8f6 !important; }
+  input.valid-address { border-color: var(--green) !important; box-shadow: 0 0 0 3px var(--green-light) !important; }
+  .field-error { font-size: 11px; color: var(--accent); margin-top: 2px; display: none; }
+  .field-error.visible { display: block; }
+  textarea { resize: vertical; min-height: 80px; }
+  hr.divider { border: none; border-top: 0.5px solid var(--border); margin: 14px 0; }
+
+  /* Item blocks */
+  .item-block { background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 12px; }
+  .item-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .item-title { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; }
+  .remove-btn { background: none; border: 0.5px solid var(--border2); border-radius: 4px; color: var(--text2); font-size: 12px; padding: 3px 8px; cursor: pointer; }
+  .remove-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .add-btn { width: 100%; padding: 10px; background: none; border: 0.5px dashed var(--border2); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text2); cursor: pointer; margin-top: 4px; }
+  .add-btn:hover { background: var(--surface2); border-style: solid; color: var(--text); }
+
+  /* Radio address type */
+  .radio-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .radio-item { display: flex; align-items: center; gap: 6px; padding: 7px 12px; background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; }
+  .radio-item:hover { border-color: var(--blue); background: var(--blue-light); }
+  .radio-item input[type=radio] { width: 15px; height: 15px; accent-color: var(--blue); cursor: pointer; }
+  .radio-item label { font-size: 13px; color: var(--text); cursor: pointer; }
+
+  /* Same address row */
+  .same-addr-row { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 10px; cursor: pointer; }
+  .same-addr-row input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--blue); cursor: pointer; }
+  .same-addr-row label { font-size: 13px; color: var(--text); cursor: pointer; }
+
+  /* Photo upload */
+  .photo-area { border: 0.5px dashed var(--border2); border-radius: var(--radius-sm); padding: 14px; text-align: center; cursor: pointer; background: var(--surface); transition: all 0.15s; }
+  .photo-area:hover { border-color: var(--blue); background: var(--blue-light); }
+  .photo-area input[type=file] { display: none; }
+  .photo-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .photo-thumb { width: 64px; height: 64px; border-radius: 4px; object-fit: cover; border: 0.5px solid var(--border); }
+
+  /* Google Maps */
+  gmp-placeautocomplete { width: 100%; display: block; }
+  gmp-placeautocomplete::part(input) { font-family: 'DM Sans', sans-serif !important; font-size: 14px !important; color: #1a1917 !important; background: #f9f8f5 !important; border: 0.5px solid #ccc9bc !important; border-radius: 6px !important; padding: 9px 11px !important; outline: none !important; width: 100% !important; box-sizing: border-box !important; height: auto !important; box-shadow: none !important; }
+  gmp-placeautocomplete::part(input):focus { border-color: #1a4fa0 !important; box-shadow: 0 0 0 3px #eef2fb !important; background: #fff !important; }
+  gmp-placeautocomplete.valid-address::part(input) { border-color: #1a7a3c !important; box-shadow: 0 0 0 3px #edf7f1 !important; }
+
+  /* Submit */
+  .submit-area { margin-top: 1.5rem; text-align: center; }
+  .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .submit-btn { padding: 14px 48px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .submit-btn:hover { background: #a83314; }
+  .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
+  .print-btn { padding: 14px 24px; background: var(--surface2); color: var(--text2); border: 0.5px solid var(--border2); border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .spinner { display: none; width: 20px; height: 20px; border: 2px solid #ffffff55; border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .submit-note { font-size: 12px; color: var(--text3); margin-top: 8px; }
+  .error-msg { display: none; color: var(--accent); font-size: 13px; margin-top: 10px; padding: 10px 14px; background: var(--accent-light); border-radius: var(--radius-sm); border: 0.5px solid #f5c4b8; text-align: center; }
+  .error-msg.visible { display: block; }
+  .thankyou-screen { display: none; text-align: center; padding: 4rem 2rem; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); margin-top: 2rem; }
+  .thankyou-screen.visible { display: block; }
+  .thankyou-icon { font-size: 56px; margin-bottom: 1rem; }
+  .thankyou-title { font-size: 24px; font-weight: 600; margin-bottom: 0.5rem; }
+  .thankyou-sub { font-size: 15px; color: var(--text2); max-width: 420px; margin: 0 auto; line-height: 1.6; }
+  .thankyou-ref { margin-top: 1.5rem; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text3); background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 16px; display: inline-block; }
+  @media print { body { background: #fff; padding: 0; } .btn-row, .add-btn { display: none; } .card { border: 1px solid #ccc; } }
+  @media (max-width: 560px) { .field-row.two, .field-row.three { grid-template-columns: 1fr; } header { flex-direction: column; gap: 12px; } }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+  <header>
+    <div>
+      <div class="logo-name">Two Men and a Truck</div>
+      <h1>Damage Claim Form</h1>
+      <p class="header-sub">Halifax &amp; Mainland Nova Scotia</p>
+    </div>
+    <div class="form-id">
+      <div>CLAIM DATE</div>
+      <div id="form-date" style="font-weight:500;color:#1a1917;margin-top:3px"></div>
+    </div>
+  </header>
+
+  <div class="alert-banner">⚠️ All damage claims must be reported within 5 days after delivery. Please include photos where possible.</div>
+
+  <div id="main-form">
+
+    <!-- Contact -->
+    <div class="card">
+      <div class="card-title"><span class="icon">👤</span> Your information</div>
+      <div class="field-row two">
+        <div class="field">
+          <label class="field-label">First name *</label>
+          <input type="text" id="firstName" placeholder="First name" required>
+          <span class="field-error" id="firstName-error">First name is required</span>
+        </div>
+        <div class="field">
+          <label class="field-label">Last name *</label>
+          <input type="text" id="lastName" placeholder="Last name" required>
+          <span class="field-error" id="lastName-error">Last name is required</span>
+        </div>
+      </div>
+      <div class="field-row two">
+        <div class="field">
+          <label class="field-label">Phone number *</label>
+          <input type="tel" id="phone" placeholder="+1 (___) ___-____" required>
+          <span class="field-error" id="phone-error">Please enter a valid 10-digit phone number</span>
+        </div>
+        <div class="field">
+          <label class="field-label">Email address *</label>
+          <input type="email" id="email" placeholder="you@example.com" required>
+          <span class="field-error" id="email-error">Please enter a valid email address</span>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Move date *</label>
+          <input type="date" id="moveDate" required>
+          <span class="field-error" id="moveDate-error">Move date is required</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Complaint -->
+    <div class="card">
+      <div class="card-title"><span class="icon">📝</span> What happened?</div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Please describe what happened *</label>
+          <textarea id="complaint" placeholder="Describe the damage or incident in as much detail as possible..." required></textarea>
+          <span class="field-error" id="complaint-error">Please describe what happened</span>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Date damage was noticed *</label>
+          <input type="date" id="damageDate" required>
+          <span class="field-error" id="damageDate-error">Please select a date</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Damaged Items -->
+    <div class="card">
+      <div class="card-title"><span class="icon">📦</span> Damaged items <span class="tag">MOVABLE ITEMS</span></div>
+      <div id="items-container"></div>
+      <button class="add-btn" type="button" onclick="addItem()">+ Add another damaged item</button>
+    </div>
+
+    <!-- Property Damage -->
+    <div class="card">
+      <div class="card-title"><span class="icon">🏠</span> Property damage <span class="tag">WALLS, FLOORS, FIXTURES</span></div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Use this section for damage to immovable property such as walls, floors, railings, windows, doors, driveways, ceilings or roofing.</p>
+      <div id="property-container"></div>
+      <button class="add-btn" type="button" onclick="addProperty()">+ Add property damage</button>
+    </div>
+
+    <!-- Notes -->
+    <div class="card">
+      <div class="card-title"><span class="icon">💬</span> Additional information</div>
+      <div class="field">
+        <label class="field-label">Additional notes <span class="opt">(optional)</span></label>
+        <textarea id="notes" placeholder="Any other details that may help us process your claim..."></textarea>
+      </div>
+    </div>
+
+    <div class="submit-area">
+      <div class="btn-row">
+        <button class="submit-btn" id="submitBtn" type="button" onclick="submitForm()">
+          <span id="btn-text">Submit Claim</span>
+          <div class="spinner" id="spinner"></div>
+        </button>
+        <button class="print-btn" type="button" onclick="window.print()">🖨️ Print</button>
+      </div>
+      <div class="error-msg" id="errorMsg"></div>
+      <p class="submit-note">Our team will review your claim and contact you within 24 hours (Mon–Fri 8AM–4:30PM).</p>
+    </div>
+
+  </div>
+
+  <div class="thankyou-screen" id="thankyouScreen">
+    <div class="thankyou-icon">✅</div>
+    <div class="thankyou-title">Claim submitted — thank you!</div>
+    <div class="thankyou-sub">Our team will review your damage claim and contact you within 24 hours during business hours (Mon–Fri, 8AM–4:30PM).</div>
+    <div class="thankyou-ref" id="refNumber"></div>
+  </div>
+
+</div>
+
+<script>
+  // ─── CONFIG ───────────────────────────────────────────────
+  const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/Kp4CzDbfoX6h6r6CVJa2/webhook-trigger/81e86d6f-f9fb-4c6d-8df0-0c47bfb8d751';
+  const CLOUDINARY_CLOUD = 'dzeqapevo';
+  const CLOUDINARY_PRESET = 'tmt-forms';
+  // ──────────────────────────────────────────────────────────
+
+  document.getElementById('form-date').textContent = new Date().toLocaleDateString('en-CA', {year:'numeric', month:'short', day:'numeric'});
+  const now = new Date();
+  const today = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+  document.getElementById('moveDate').setAttribute('max', today);
+  document.getElementById('damageDate').setAttribute('max', today);
+
+  // ─── STATE ────────────────────────────────────────────────
+  let itemCount = 0;
+  let propertyCount = 0;
+  const photoFiles = {};
+
+  // ─── ADDRESS BLOCK HTML ───────────────────────────────────
+  function addressBlockHTML(prefix, showSameAsFirst = false) {
+    const sameRow = showSameAsFirst ? `
+      <div class="same-addr-row" onclick="toggleSameAddr('${prefix}')">
+        <input type="checkbox" id="${prefix}-same" onchange="toggleSameAddr('${prefix}')">
+        <label for="${prefix}-same">Same address as Item 1</label>
+      </div>` : '';
+    return `
+      ${sameRow}
+      <div id="${prefix}-addr-block">
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label">Damage location address</label>
+            <input type="text" id="${prefix}-street" placeholder="Start typing address..." autocomplete="off">
+          </div>
+        </div>
+        <div class="field-row three">
+          <div class="field"><label class="field-label">City</label><input type="text" id="${prefix}-city" placeholder="City"></div>
+          <div class="field"><label class="field-label">Province</label><input type="text" id="${prefix}-province" placeholder="Province"></div>
+          <div class="field"><label class="field-label">Postal code</label><input type="text" id="${prefix}-postal" placeholder="B3H 1A1"></div>
+        </div>
+        <div class="radio-group" style="margin-top:8px;">
+          <div class="radio-item">
+            <input type="radio" id="${prefix}-addrtype-pickup" name="${prefix}-addrtype" value="pickup">
+            <label for="${prefix}-addrtype-pickup">Pickup address</label>
+          </div>
+          <div class="radio-item">
+            <input type="radio" id="${prefix}-addrtype-dropoff" name="${prefix}-addrtype" value="dropoff">
+            <label for="${prefix}-addrtype-dropoff">Dropoff address</label>
+          </div>
+          <div class="radio-item">
+            <input type="radio" id="${prefix}-addrtype-other" name="${prefix}-addrtype" value="other" checked>
+            <label for="${prefix}-addrtype-other">Other address</label>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function toggleSameAddr(prefix) {
+    const cb = document.getElementById(`${prefix}-same`);
+    const block = document.getElementById(`${prefix}-addr-block`);
+    if (!cb || !block) return;
+    block.style.display = cb.checked ? 'none' : 'block';
+  }
+
+  // ─── DAMAGED ITEMS ────────────────────────────────────────
+  function addItem() {
+    itemCount++;
+    const n = itemCount;
+    const isFirst = n === 1;
+    const container = document.getElementById('items-container');
+    const div = document.createElement('div');
+    div.className = 'item-block';
+    div.id = `item-${n}`;
+    div.innerHTML = `
+      <div class="item-header">
+        <span class="item-title">Damaged Item ${n}</span>
+        ${!isFirst ? `<button class="remove-btn" type="button" onclick="removeBlock('item-${n}')">Remove</button>` : ''}
+      </div>
+      <div class="field-row two">
+        <div class="field">
+          <label class="field-label">Item description *</label>
+          <input type="text" id="item-desc-${n}" placeholder="e.g. Dining table, Sofa, TV...">
+        </div>
+        <div class="field">
+          <label class="field-label">Brand <span class="opt">(optional)</span></label>
+          <input type="text" id="item-brand-${n}" placeholder="e.g. IKEA, Ashley...">
+        </div>
+      </div>
+      <div class="field-row three">
+        <div class="field">
+          <label class="field-label">Make <span class="opt">(optional)</span></label>
+          <input type="text" id="item-make-${n}" placeholder="Model or make">
+        </div>
+        <div class="field">
+          <label class="field-label">Colour <span class="opt">(optional)</span></label>
+          <input type="text" id="item-colour-${n}" placeholder="e.g. Brown, Black">
+        </div>
+        <div class="field">
+          <label class="field-label">Year purchased <span class="opt">(optional)</span></label>
+          <input type="number" id="item-year-${n}" placeholder="e.g. 2020" min="1900" max="2026">
+        </div>
+      </div>
+      <div class="field-row two">
+        <div class="field">
+          <label class="field-label">Estimated value <span class="opt">(optional)</span></label>
+          <input type="number" id="item-value-${n}" placeholder="$ CAD" min="0">
+        </div>
+        <div class="field">
+          <label class="field-label">Nature of damage <span class="opt">(optional)</span></label>
+          <input type="text" id="item-damage-${n}" placeholder="e.g. Scratch, Crack, Missing...">
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="field">
+        <label class="field-label">Photos of damage <span class="opt">(optional)</span></label>
+        <div class="photo-area" onclick="document.getElementById('photo-item-${n}').click()">
+          <input type="file" id="photo-item-${n}" accept="image/*" multiple onchange="handlePhotos('item-${n}', this)">
+          <div style="font-size:22px;margin-bottom:4px">📷</div>
+          <div style="font-size:13px;color:var(--text2)">Click to upload photos</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">JPG, PNG accepted</div>
+        </div>
+        <div class="photo-preview" id="preview-item-${n}"></div>
+      </div>
+      <hr class="divider">
+      ${addressBlockHTML(`item-${n}`, !isFirst)}`;
+    container.appendChild(div);
+    photoFiles[`item-${n}`] = [];
+    setTimeout(() => setupAC(`item-${n}-street`), 300);
+  }
+
+  // ─── PROPERTY DAMAGE ──────────────────────────────────────
+  const propertyTypes = ['Wall', 'Floor', 'Ceiling / Roof', 'Door', 'Window', 'Railing', 'Driveway', 'Post', 'Other'];
+
+  function addProperty() {
+    propertyCount++;
+    const n = propertyCount;
+    const container = document.getElementById('property-container');
+    const div = document.createElement('div');
+    div.className = 'item-block';
+    div.id = `prop-${n}`;
+    div.innerHTML = `
+      <div class="item-header">
+        <span class="item-title">Property Damage ${n}</span>
+        ${n > 1 ? `<button class="remove-btn" type="button" onclick="removeBlock('prop-${n}')">Remove</button>` : ''}
+      </div>
+      <div class="field-row two">
+        <div class="field">
+          <label class="field-label">Type of property *</label>
+          <select id="prop-type-${n}">
+            <option value="">Select type...</option>
+            ${propertyTypes.map(t => `<option value="${t}">${t}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Nature of damage <span class="opt">(optional)</span></label>
+          <input type="text" id="prop-damage-${n}" placeholder="e.g. Scuff, Crack, Hole...">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Description <span class="opt">(optional)</span></label>
+          <textarea id="prop-desc-${n}" placeholder="Describe the damage in detail..." style="min-height:60px"></textarea>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="field">
+        <label class="field-label">Photos of damage <span class="opt">(optional)</span></label>
+        <div class="photo-area" onclick="document.getElementById('photo-prop-${n}').click()">
+          <input type="file" id="photo-prop-${n}" accept="image/*" multiple onchange="handlePhotos('prop-${n}', this)">
+          <div style="font-size:22px;margin-bottom:4px">📷</div>
+          <div style="font-size:13px;color:var(--text2)">Click to upload photos</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">JPG, PNG accepted</div>
+        </div>
+        <div class="photo-preview" id="preview-prop-${n}"></div>
+      </div>
+      <hr class="divider">
+      ${addressBlockHTML(`prop-${n}`, false)}`;
+    container.appendChild(div);
+    photoFiles[`prop-${n}`] = [];
+    setTimeout(() => setupAC(`prop-${n}-street`), 300);
+  }
+
+  function removeBlock(id) {
+    const el = document.getElementById(id);
+    if (el) { el.remove(); delete photoFiles[id]; }
+  }
+
+  // ─── PHOTOS ───────────────────────────────────────────────
+  function handlePhotos(key, input) {
+    const preview = document.getElementById(`preview-${key}`);
+    const files = Array.from(input.files);
+    photoFiles[key] = [...(photoFiles[key] || []), ...files];
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.className = 'photo-thumb';
+        preview.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ─── GOOGLE MAPS ──────────────────────────────────────────
+  async function setupAC(inputId) {
+    const inputEl = document.getElementById(inputId);
+    if (!inputEl || inputEl.dataset.acInit) return;
+    inputEl.dataset.acInit = '1';
+    try {
+      const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
+      const pac = new PlaceAutocompleteElement({ includedRegionCodes: ['ca'] });
+      pac.id = inputId;
+      pac.dataset.street = '';
+      pac.style.width = '100%';
+      pac.style.display = 'block';
+      inputEl.parentNode.replaceChild(pac, inputEl);
+      const prefix = inputId.replace('-street', '');
+      pac.addEventListener('gmp-select', async (event) => {
+        try {
+          const place = event.placePrediction.toPlace();
+          await place.fetchFields({ fields: ['addressComponents'] });
+          let streetNum='', route='', city='', province='', postal='';
+          if (place.addressComponents) {
+            place.addressComponents.forEach(c => {
+              const types = c.types || [];
+              if (types.includes('street_number')) streetNum = c.longText || '';
+              if (types.includes('route')) route = c.longText || '';
+              if (types.includes('locality')) city = c.longText || '';
+              if (types.includes('administrative_area_level_1')) province = c.longText || '';
+              if (types.includes('postal_code')) postal = c.longText || '';
+            });
+          }
+          pac.dataset.street = (streetNum + ' ' + route).trim();
+          pac.classList.add('valid-address');
+          const fill = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+          fill(`${prefix}-city`, city);
+          fill(`${prefix}-province`, province);
+          fill(`${prefix}-postal`, postal);
+        } catch(err) { console.log(err); }
+      });
+    } catch(e) { console.log(e); }
+  }
+
+  window.addEventListener('load', () => { setTimeout(() => {}, 1000); });
+
+  // ─── GET DATA ─────────────────────────────────────────────
+  function getAddrData(prefix) {
+    const sameEl = document.getElementById(`${prefix}-same`);
+    if (sameEl && sameEl.checked) return { address: 'Same as Item 1', addressType: 'same' };
+    const streetEl = document.getElementById(`${prefix}-street`);
+    const street = streetEl ? (streetEl.dataset?.street || streetEl.value || '') : '';
+    const city = document.getElementById(`${prefix}-city`)?.value || '';
+    const province = document.getElementById(`${prefix}-province`)?.value || '';
+    const postal = document.getElementById(`${prefix}-postal`)?.value || '';
+    const address = [street, city, province, postal].filter(Boolean).join(', ');
+    const addrTypeEl = document.querySelector(`input[name="${prefix}-addrtype"]:checked`);
+    const addressType = addrTypeEl ? addrTypeEl.value : 'other';
+    return { address, addressType };
+  }
+
+  function getItems() {
+    const items = [];
+    for (let n = 1; n <= itemCount; n++) {
+      const block = document.getElementById(`item-${n}`);
+      if (!block) continue;
+      const desc = document.getElementById(`item-desc-${n}`)?.value || '';
+      if (!desc) continue;
+      items.push({
+        description: desc,
+        brand: document.getElementById(`item-brand-${n}`)?.value || '',
+        make: document.getElementById(`item-make-${n}`)?.value || '',
+        colour: document.getElementById(`item-colour-${n}`)?.value || '',
+        yearPurchased: document.getElementById(`item-year-${n}`)?.value || '',
+        estimatedValue: document.getElementById(`item-value-${n}`)?.value || '',
+        natureOfDamage: document.getElementById(`item-damage-${n}`)?.value || '',
+        photoCount: (photoFiles[`item-${n}`] || []).length,
+        ...getAddrData(`item-${n}`)
+      });
+    }
+    return items;
+  }
+
+  function getPropertyDamage() {
+    const items = [];
+    for (let n = 1; n <= propertyCount; n++) {
+      const block = document.getElementById(`prop-${n}`);
+      if (!block) continue;
+      const type = document.getElementById(`prop-type-${n}`)?.value || '';
+      if (!type) continue;
+      items.push({
+        type,
+        natureOfDamage: document.getElementById(`prop-damage-${n}`)?.value || '',
+        description: document.getElementById(`prop-desc-${n}`)?.value || '',
+        photoCount: (photoFiles[`prop-${n}`] || []).length,
+        ...getAddrData(`prop-${n}`)
+      });
+    }
+    return items;
+  }
+
+  // ─── VALIDATION ───────────────────────────────────────────
+  const isValidEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+  const isValidPhone = p => p.replace(/\D/g,'').replace(/^1/,'').length === 10;
+
+  function setInvalid(id, errId, msg) {
+    const el=document.getElementById(id), er=document.getElementById(errId);
+    if(el) el.classList.add('invalid');
+    if(er&&msg){er.textContent=msg;er.classList.add('visible');}
+  }
+  function setValid(id, errId) {
+    const el=document.getElementById(id), er=document.getElementById(errId);
+    if(el) el.classList.remove('invalid');
+    if(er) er.classList.remove('visible');
+  }
+
+  ['firstName','lastName','phone','email','moveDate','complaint','damageDate'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => {
+      el.classList.remove('invalid');
+      const err = document.getElementById(id+'-error');
+      if (err) err.classList.remove('visible');
+    });
+  });
+
+  // ─── PDF ──────────────────────────────────────────────────
+  function generatePDF(payload) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const W = 210, margin = 15, colW = W - margin * 2;
+    let y = margin;
+
+    const addLine = (text, size=10, bold=false, color=[26,25,23]) => {
+      doc.setFontSize(size); doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setTextColor(...color);
+      const lines = doc.splitTextToSize(String(text||''), colW);
+      if (y + lines.length * (size * 0.4) > 280) { doc.addPage(); y = margin; }
+      doc.text(lines, margin, y); y += lines.length * (size * 0.45) + 1;
+    };
+    const addSection = (title) => {
+      y += 3; doc.setFillColor(245, 244, 240); doc.roundedRect(margin, y-4, colW, 8, 2, 2, 'F');
+      addLine(title, 11, true, [200, 64, 26]); y += 1;
+    };
+    const addField = (label, value) => {
+      if (!value) return;
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(107, 104, 96);
+      doc.text(label + ':', margin, y);
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(26, 25, 23);
+      const lines = doc.splitTextToSize(String(value), colW - 40);
+      doc.text(lines, margin + 40, y); y += Math.max(lines.length * 4.5, 5);
+    };
+
+    // Header
+    doc.setFillColor(200, 64, 26); doc.rect(0, 0, 210, 18, 'F');
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
+    doc.text('TWO MEN AND A TRUCK', margin, 10);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.text('Damage Claim Form', margin, 15);
+    doc.text(`Ref: ${payload.refNumber}  |  ${new Date(payload.submittedAt).toLocaleDateString('en-CA')}`, W-margin, 10, {align:'right'});
+    y = 24;
+
+    addSection('CUSTOMER INFORMATION');
+    addField('Name', payload.firstName + ' ' + payload.lastName);
+    addField('Phone', payload.phone);
+    addField('Email', payload.email);
+    addField('Move Date', payload.moveDate);
+
+    addSection('COMPLAINT DETAILS');
+    addLine(payload.complaint, 9);
+    y += 2;
+    addField('Damage Noticed', payload.damageDate);
+
+    if (payload.items && payload.items.length > 0) {
+      payload.items.forEach((item, i) => {
+        addSection(`DAMAGED ITEM ${i+1}: ${item.description.toUpperCase()}`);
+        if (item.brand) addField('Brand', item.brand);
+        if (item.make) addField('Make', item.make);
+        if (item.colour) addField('Colour', item.colour);
+        if (item.yearPurchased) addField('Year', item.yearPurchased);
+        if (item.estimatedValue) addField('Est. Value', '$' + item.estimatedValue + ' CAD');
+        if (item.natureOfDamage) addField('Damage Type', item.natureOfDamage);
+        addField('Location', item.address + (item.addressType === 'pickup' ? ' (Pickup)' : item.addressType === 'dropoff' ? ' (Dropoff)' : ''));
+        if (item.photoCount > 0) addField('Photos', item.photoCount + ' photo(s) uploaded');
+      });
+    }
+
+    if (payload.propertyDamage && payload.propertyDamage.length > 0) {
+      payload.propertyDamage.forEach((prop, i) => {
+        addSection(`PROPERTY DAMAGE ${i+1}: ${prop.type.toUpperCase()}`);
+        if (prop.natureOfDamage) addField('Damage Type', prop.natureOfDamage);
+        if (prop.description) addLine(prop.description, 9);
+        addField('Location', prop.address + (prop.addressType === 'pickup' ? ' (Pickup)' : prop.addressType === 'dropoff' ? ' (Dropoff)' : ''));
+        if (prop.photoCount > 0) addField('Photos', prop.photoCount + ' photo(s) uploaded');
+      });
+    }
+
+    if (payload.notes) { addSection('ADDITIONAL NOTES'); addLine(payload.notes, 9); }
+
+    doc.setFontSize(8); doc.setTextColor(156, 154, 148);
+    doc.text('210 Joseph Zatzman Dr., Dartmouth, NS B3B 1P4  |  902.701.9876  |  Info3028@twomen.ca', W/2, 290, {align:'center'});
+    return doc.output('blob');
+  }
+
+  // ─── CLOUDINARY ───────────────────────────────────────────
+  async function uploadToCloudinary(blob, publicId, isRaw=false) {
+    const formData = new FormData();
+    const file = isRaw ? new File([blob], publicId.split('/').pop() + '.pdf', {type:'application/pdf'}) : blob;
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_PRESET);
+    formData.append('public_id', publicId);
+    const endpoint = isRaw ? 'raw' : 'image';
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${endpoint}/upload`, {method:'POST', body:formData});
+    if (!res.ok) { const err = await res.json(); console.error(err); throw new Error('Upload failed'); }
+    return (await res.json()).secure_url;
+  }
+
+  async function uploadAllPhotos(refNumber, fullName) {
+    const safe = fullName.replace(/[^a-zA-Z0-9]/g, '_');
+    const urls = {};
+    for (const [key, files] of Object.entries(photoFiles)) {
+      if (!files || !files.length) continue;
+      urls[key] = [];
+      for (let i = 0; i < files.length; i++) {
+        const url = await uploadToCloudinary(files[i], `tmt-damage-photos/${safe}_${refNumber}_${key}_${i+1}`, false);
+        urls[key].push(url);
+      }
+    }
+    return urls;
+  }
+
+  function generateRef() { return 'CLM-' + Date.now().toString(36).toUpperCase(); }
+
+  // ─── SUBMIT ───────────────────────────────────────────────
+  async function submitForm() {
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const moveDate = document.getElementById('moveDate').value;
+    const complaint = document.getElementById('complaint').value.trim();
+    const damageDate = document.getElementById('damageDate').value;
+
+    document.getElementById('errorMsg').classList.remove('visible');
+    document.querySelectorAll('.invalid').forEach(e=>e.classList.remove('invalid'));
+    document.querySelectorAll('.field-error').forEach(e=>e.classList.remove('visible'));
+
+    let hasError = false;
+    if (!firstName) { setInvalid('firstName','firstName-error','First name is required'); hasError=true; } else setValid('firstName','firstName-error');
+    if (!lastName) { setInvalid('lastName','lastName-error','Last name is required'); hasError=true; } else setValid('lastName','lastName-error');
+    if (!phone) { setInvalid('phone','phone-error','Phone number is required'); hasError=true; }
+    else if (!isValidPhone(phone)) { setInvalid('phone','phone-error','Please enter a valid 10-digit phone number'); hasError=true; }
+    else setValid('phone','phone-error');
+    if (!email) { setInvalid('email','email-error','Email address is required'); hasError=true; }
+    else if (!isValidEmail(email)) { setInvalid('email','email-error','Please enter a valid email address'); hasError=true; }
+    else setValid('email','email-error');
+    if (!moveDate) { setInvalid('moveDate','moveDate-error','Move date is required'); hasError=true; } else setValid('moveDate','moveDate-error');
+    if (!complaint) { setInvalid('complaint','complaint-error','Please describe what happened'); hasError=true; } else setValid('complaint','complaint-error');
+    if (!damageDate) { setInvalid('damageDate','damageDate-error','Please select a date'); hasError=true; } else setValid('damageDate','damageDate-error');
+
+    if (hasError) {
+      const first = document.querySelector('.invalid');
+      if (first) first.scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+
+    const btn=document.getElementById('submitBtn'), btnText=document.getElementById('btn-text'), spinner=document.getElementById('spinner');
+    btn.disabled=true; btnText.style.display='none'; spinner.style.display='block';
+
+    const refNumber = generateRef();
+    const fullName = firstName + ' ' + lastName;
+    const safe = fullName.replace(/[^a-zA-Z0-9]/g, '_');
+
+    try {
+      const payload = {
+        refNumber,
+        submittedAt: new Date().toISOString(),
+        firstName, lastName, fullName,
+        phone: '+1' + phone.replace(/\D/g,'').replace(/^1/,''),
+        email, moveDate, complaint, damageDate,
+        items: getItems(),
+        propertyDamage: getPropertyDamage(),
+        notes: document.getElementById('notes').value.trim()
+      };
+
+      btnText.textContent = 'Uploading photos...';
+      btnText.style.display = 'inline'; spinner.style.display = 'none';
+      payload.photoUrls = await uploadAllPhotos(refNumber, fullName);
+
+      btnText.textContent = 'Generating PDF...';
+      const pdfBlob = generatePDF(payload);
+
+      btnText.textContent = 'Uploading PDF...';
+      payload.pdfUrl = await uploadToCloudinary(pdfBlob, `tmt-damage-claims/${safe}_${refNumber}`, true);
+
+      btnText.textContent = 'Submitting...';
+      const res = await fetch(GHL_WEBHOOK_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+
+      if (res.ok) {
+        document.getElementById('main-form').style.display = 'none';
+        document.getElementById('thankyouScreen').classList.add('visible');
+        document.getElementById('refNumber').textContent = 'Reference: ' + refNumber;
+      } else throw new Error();
+    } catch(err) {
+      console.error(err);
+      btn.disabled=false; btnText.textContent='Submit Claim'; btnText.style.display='inline'; spinner.style.display='none';
+      document.getElementById('errorMsg').textContent = 'Something went wrong. Please try again or call us at +1 902-259-2498.';
+      document.getElementById('errorMsg').classList.add('visible');
+    }
+  }
+
+  // Initialize first item
+  addItem();
+</script>
+</body>
+</html>
