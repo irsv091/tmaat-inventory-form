@@ -609,7 +609,14 @@
         if (item.estimatedValue) addField('Est. Value', '$' + item.estimatedValue + ' CAD');
         if (item.natureOfDamage) addField('Damage Type', item.natureOfDamage);
         addField('Location', item.address + (item.addressType === 'pickup' ? ' (Pickup)' : item.addressType === 'dropoff' ? ' (Dropoff)' : ''));
-        if (item.photoCount > 0) addField('Photos', item.photoCount + ' photo(s) uploaded');
+        if (item.photoCount > 0) {
+         addField('Photos', item.photoCount + ' photo(s) uploaded');
+        if (payload.photoUrls && payload.photoUrls[`item-${i+1}`]) {
+          payload.photoUrls[`item-${i+1}`].forEach((url, idx) => {
+          addField(`Photo ${idx+1}`, url);
+    });
+  }
+}
       });
     }
 
@@ -619,7 +626,14 @@
         if (prop.natureOfDamage) addField('Damage Type', prop.natureOfDamage);
         if (prop.description) addLine(prop.description, 9);
         addField('Location', prop.address + (prop.addressType === 'pickup' ? ' (Pickup)' : prop.addressType === 'dropoff' ? ' (Dropoff)' : ''));
-        if (prop.photoCount > 0) addField('Photos', prop.photoCount + ' photo(s) uploaded');
+        if (prop.photoCount > 0) {
+         addField('Photos', prop.photoCount + ' photo(s) uploaded');
+        if (payload.photoUrls && payload.photoUrls[`prop-${i+1}`]) {
+         payload.photoUrls[`prop-${i+1}`].forEach((url, idx) => {
+         addField(`Photo ${idx+1}`, url);
+    });
+  }
+}
       });
     }
 
