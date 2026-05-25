@@ -419,16 +419,45 @@
   function handlePhotos(key, input) {
     const preview = document.getElementById(`preview-${key}`);
     const files = Array.from(input.files);
-    photoFiles[key] = [...(photoFiles[key] || []), ...files];
     files.forEach(file => {
+      const fileIdx = (photoFiles[key] || []).length;
+      photoFiles[key] = [...(photoFiles[key] || []), file];
       const reader = new FileReader();
       reader.onload = e => {
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'position:relative;display:inline-block;';
+        wrapper.id = `thumb-${key}-${fileIdx}`;
         const img = document.createElement('img');
         img.src = e.target.result;
         img.className = 'photo-thumb';
-        preview.appendChild(img);
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.innerHTML = '✕';
+        removeBtn.style.cssText = 'position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:var(--accent);color:white;border:none;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;';
+        const capturedIdx = fileIdx;
+        removeBtn.onclick = () => { photoFiles[key].splice(capturedIdx, 1); wrapper.remove(); };
+        wrapper.appendChild(img);
+        wrapper.appendChild(removeBtn);
+        preview.appendChild(wrapper);
       };
       reader.readAsDataURL(file);
+    });
+    input.value = '';
+  }
+
+  async function compressImage(base64, maxWidth=800) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.onerror = () => resolve(base64);
+      img.src = base64;
     });
   }
 
@@ -685,12 +714,18 @@
       if (!files || !files.length) continue;
       base64Data[key] = [];
       for (const file of files) {
-        const base64 = await new Promise(resolve => {
-          const reader = new FileReader();
-          reader.onload = e => resolve(e.target.result);
-          reader.readAsDataURL(file);
-        });
-        base64Data[key].push(base64);
+        try {
+          const base64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = e => resolve(e.target.result);
+            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.readAsDataURL(file);
+          });
+          const compressed = await compressImage(base64);
+          base64Data[key].push(compressed);
+        } catch(e) {
+          console.log('Failed to process photo:', e);
+        }
       }
     }
     return base64Data;
