@@ -4,12 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Box & Supply Order — Two Men and a Truck</title>
-<!-- Google Maps Places API (New) -->
 <script>
   (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
   ({key: "AIzaSyAuYYpVJSDAj45RzXZ757UxpfIOyO96zZg", v: "weekly"});
 </script>
-<!-- jsPDF for PDF generation -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
@@ -41,7 +39,7 @@
   .field { display: flex; flex-direction: column; gap: 5px; }
   label.field-label { font-size: 12px; font-weight: 500; color: var(--text2); }
   input[type=text], input[type=email], input[type=tel], input[type=date], input[type=time], input[type=number], select, textarea {
-    font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 16px; color: var(--text);
     background: var(--surface2); border: 0.5px solid var(--border2);
     border-radius: var(--radius-sm); padding: 9px 11px; outline: none;
     transition: border-color 0.15s, box-shadow 0.15s; width: 100%;
@@ -108,11 +106,10 @@
   .thankyou-title { font-size: 24px; font-weight: 600; margin-bottom: 0.5rem; }
   .thankyou-sub { font-size: 15px; color: var(--text2); max-width: 420px; margin: 0 auto; line-height: 1.6; }
   .thankyou-ref { margin-top: 1.5rem; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text3); background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 16px; display: inline-block; }
-  /* Google Maps autocomplete */
-  gmp-placeautocomplete { width: 100%; display: block; }
-  gmp-placeautocomplete::part(input) { font-family: 'DM Sans', sans-serif !important; font-size: 14px !important; color: #1a1917 !important; background: #f9f8f5 !important; border: 0.5px solid #ccc9bc !important; border-radius: 6px !important; padding: 9px 11px !important; outline: none !important; width: 100% !important; box-sizing: border-box !important; height: auto !important; box-shadow: none !important; }
-  gmp-placeautocomplete::part(input):focus { border-color: #1a4fa0 !important; box-shadow: 0 0 0 3px #eef2fb !important; background: #fff !important; }
-  gmp-placeautocomplete.valid-address::part(input) { border-color: #1a7a3c !important; box-shadow: 0 0 0 3px #edf7f1 !important; }
+  .pac-container { border-radius: var(--radius-sm) !important; border: 0.5px solid var(--border2) !important; box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important; font-family: 'DM Sans', sans-serif !important; font-size: 14px !important; }
+  .pac-item { padding: 8px 12px !important; font-size: 13px !important; cursor: pointer !important; }
+  .pac-item:hover { background: var(--surface2) !important; }
+  .pac-item-selected { background: var(--blue-light) !important; }
   @media print { body { background: white; padding: 0; } .btn-row, .summary-card { display: none; } .card { border: 1px solid #ccc; box-shadow: none; } }
   @media (max-width: 560px) { .field-row.two, .field-row.three { grid-template-columns: 1fr; } .product-grid { grid-template-columns: 1fr; } header { flex-direction: column; gap: 12px; } .btn-row { flex-direction: column; } }
 </style>
@@ -130,9 +127,7 @@
       <div id="form-date" style="font-weight:500;color:#1a1917;margin-top:3px"></div>
     </div>
   </header>
-
   <div id="main-form">
-    <!-- Contact Info -->
     <div class="card">
       <div class="card-title"><span class="icon">👤</span> Your information</div>
       <div class="field-row two">
@@ -160,8 +155,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Delivery Info -->
     <div class="card">
       <div class="card-title"><span class="icon">🚚</span> Delivery details</div>
       <label class="delivery-banner" id="deliveryBanner" onclick="toggleDelivery()">
@@ -223,8 +216,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Products -->
     <div class="card">
       <div class="card-title"><span class="icon">📦</span> Select your supplies <span class="badge">PRICES INCLUDE TAX ESTIMATE</span></div>
       <div class="product-section">
@@ -247,8 +238,6 @@
         <div class="product-grid" id="mattress-grid"></div>
       </div>
     </div>
-
-    <!-- Notes -->
     <div class="card">
       <div class="card-title"><span class="icon">📝</span> Special instructions</div>
       <div class="field">
@@ -256,8 +245,6 @@
         <textarea id="notes" placeholder="e.g. Buzz unit 204, park on side street, leave at front door if not home..."></textarea>
       </div>
     </div>
-
-    <!-- Order Summary -->
     <div class="summary-card" id="summaryCard">
       <div class="summary-title">🧾 Order Summary</div>
       <div class="summary-empty" id="summaryEmpty">No items selected yet</div>
@@ -269,7 +256,6 @@
         <div class="summary-row total"><span>Total</span><span class="mono" id="totalDisplay">$0.00</span></div>
       </div>
     </div>
-
     <div class="btn-row">
       <button class="btn btn-primary" id="submitBtn" onclick="submitForm()">
         <span id="btn-text">Submit Order</span>
@@ -280,8 +266,6 @@
     <div class="error-msg" id="errorMsg"></div>
     <p class="submit-note">Our team will call you back within 2 hours (Mon–Fri 8AM–4:30PM) to confirm your order and process payment.</p>
   </div>
-
-  <!-- Thank You Screen -->
   <div class="thankyou-screen" id="thankyouScreen">
     <div class="thankyou-icon">📦</div>
     <div class="thankyou-title">Order received — thank you!</div>
@@ -289,17 +273,11 @@
     <div class="thankyou-ref" id="refNumber"></div>
   </div>
 </div>
-
 <script>
-  // ─── CONFIG ───────────────────────────────────────────────
   const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/Kp4CzDbfoX6h6r6CVJa2/webhook-trigger/c37293ab-3b5a-4c64-958e-616fa0ff956e';
   const CLOUDINARY_CLOUD = 'dzeqapevo';
   const CLOUDINARY_PRESET = 'tmt-forms';
-  // ──────────────────────────────────────────────────────────
-
   document.getElementById('form-date').textContent = new Date().toLocaleDateString('en-CA', {year:'numeric', month:'short', day:'numeric'});
-
-  // ─── PRODUCTS ─────────────────────────────────────────────
   const products = {
     boxes: [
       { id: 'small-box',    name: 'Small Box',         price: 3.99 },
@@ -325,12 +303,9 @@
       { id: 'mattress-twin',  name: 'Mattress Bag — Twin',  price: 19.99 },
     ]
   };
-
   const quantities = {};
   const DELIVERY_FEE = 10.00;
   let freeDelivery = false;
-  let streetValue = '';
-
   function buildGrid(items, containerId) {
     const container = document.getElementById(containerId);
     items.forEach(item => {
@@ -358,7 +333,6 @@
       container.appendChild(row);
     });
   }
-
   function toggleItem(id, checked) {
     const row = document.getElementById('row-' + id);
     if (checked) {
@@ -371,14 +345,12 @@
     }
     updateSummary();
   }
-
   function changeQty(id, delta) {
     const newVal = Math.max(1, (quantities[id] || 1) + delta);
     quantities[id] = newVal;
     document.getElementById('qtyval-' + id).textContent = newVal;
     updateSummary();
   }
-
   function getSelectedItems() {
     const selected = [];
     [...Object.values(products)].flat().forEach(item => {
@@ -388,7 +360,6 @@
     });
     return selected;
   }
-
   function toggleDelivery() {
     freeDelivery = document.getElementById('usingMovingService').checked;
     const badge = document.getElementById('deliveryBadge');
@@ -401,7 +372,6 @@
     }
     updateSummary();
   }
-
   function updateSummary() {
     const items = getSelectedItems();
     const summaryEmpty = document.getElementById('summaryEmpty');
@@ -430,51 +400,40 @@
     document.getElementById('totalDisplay').textContent = '$' + total.toFixed(2);
   }
 
-  // ─── GOOGLE MAPS AUTOCOMPLETE ─────────────────────────────
+  // ─── GOOGLE MAPS AUTOCOMPLETE (classic — no full-screen on mobile) ─────────
   async function initAutocomplete() {
-    const inputEl = document.getElementById('street');
-    if (!inputEl) return;
     try {
-      const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
-      const pac = new PlaceAutocompleteElement({ includedRegionCodes: ['ca'] });
-      pac.id = 'street-pac';
-      pac.dataset.street = '';
-      pac.style.width = '100%';
-      pac.style.display = 'block';
-      inputEl.parentNode.replaceChild(pac, inputEl);
-      pac.addEventListener('gmp-select', async (event) => {
-        try {
-          const place = event.placePrediction.toPlace();
-          await place.fetchFields({ fields: ['addressComponents'] });
-          let streetNum='', route='', city='', province='', postal='';
-          if (place.addressComponents) {
-            place.addressComponents.forEach(c => {
-              const types = c.types || [];
-              if (types.includes('street_number')) streetNum = c.longText || '';
-              if (types.includes('route')) route = c.longText || '';
-              if (types.includes('locality')) city = c.longText || '';
-              if (types.includes('administrative_area_level_1')) province = c.longText || '';
-              if (types.includes('postal_code')) postal = c.longText || '';
-            });
-          }
-          streetValue = (streetNum + ' ' + route).trim();
-          pac.dataset.street = streetValue;
-          pac.classList.add('valid-address');
-          const fill = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-          fill('city', city);
-          fill('province', province);
-          fill('postalCode', postal);
-        } catch(err) { console.log('Place select error:', err); }
+      await google.maps.importLibrary("places");
+      const input = document.getElementById('street');
+      const autocomplete = new google.maps.places.Autocomplete(input, {
+        componentRestrictions: { country: 'ca' },
+        fields: ['address_components', 'formatted_address'],
+        types: ['address']
+      });
+      autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
+        if (!place.address_components) return;
+        let streetNum='', route='', city='', province='', postal='';
+        place.address_components.forEach(c => {
+          if (c.types.includes('street_number')) streetNum = c.long_name;
+          if (c.types.includes('route')) route = c.long_name;
+          if (c.types.includes('locality')) city = c.long_name;
+          if (c.types.includes('administrative_area_level_1')) province = c.long_name;
+          if (c.types.includes('postal_code')) postal = c.long_name;
+        });
+        input.value = (streetNum + ' ' + route).trim();
+        input.classList.add('valid-address');
+        const fill = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+        fill('city', city);
+        fill('province', province);
+        fill('postalCode', postal);
       });
     } catch(e) { console.log('Places API error:', e); }
   }
-
   window.addEventListener('load', () => { setTimeout(initAutocomplete, 1000); });
 
-  // ─── VALIDATION ───────────────────────────────────────────
   const isValidEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
   const isValidPhone = p => p.replace(/\D/g,'').replace(/^1/,'').length === 10;
-
   function setInvalid(id, errId, msg) {
     const el=document.getElementById(id), er=document.getElementById(errId);
     if(el) el.classList.add('invalid');
@@ -485,7 +444,6 @@
     if(el) el.classList.remove('invalid');
     if(er) er.classList.remove('visible');
   }
-
   ['firstName','lastName','phone','email','street','city','postalCode','deliveryDate'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('input', () => {
@@ -494,26 +452,21 @@
       if (err) err.classList.remove('visible');
     });
   });
-
-  // ─── PDF GENERATION ───────────────────────────────────────
   function generatePDF(payload) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const W = 210, margin = 15, colW = W - margin * 2;
     let y = margin;
-
     const addLine = (text, size=10, bold=false, color=[26,25,23]) => {
       doc.setFontSize(size); doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setTextColor(...color);
       const lines = doc.splitTextToSize(String(text), colW);
       if (y + lines.length * (size * 0.4) > 280) { doc.addPage(); y = margin; }
       doc.text(lines, margin, y); y += lines.length * (size * 0.45) + 1;
     };
-
     const addSection = (title) => {
       y += 3; doc.setFillColor(245, 244, 240); doc.roundedRect(margin, y-4, colW, 8, 2, 2, 'F');
       addLine(title, 11, true, [200, 64, 26]); y += 1;
     };
-
     const addField = (label, value) => {
       if (!value) return;
       doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(107, 104, 96);
@@ -522,8 +475,6 @@
       const lines = doc.splitTextToSize(String(value), colW - 40);
       doc.text(lines, margin + 40, y); y += Math.max(lines.length * 4.5, 5);
     };
-
-    // Header
     doc.setFillColor(200, 64, 26); doc.rect(0, 0, 210, 18, 'F');
     doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
     doc.text('TWO MEN AND A TRUCK', margin, 10);
@@ -531,27 +482,19 @@
     doc.text('Box & Supply Order Form', margin, 15);
     doc.text(`Ref: ${payload.refNumber}  |  ${new Date(payload.submittedAt).toLocaleDateString('en-CA')}`, W - margin, 10, {align:'right'});
     y = 24;
-
-    // Contact
     addSection('CUSTOMER INFORMATION');
     addField('Name', payload.contact.firstName + ' ' + payload.contact.lastName);
     addField('Phone', payload.contact.phone);
     addField('Email', payload.contact.email);
-
-    // Delivery
     addSection('DELIVERY DETAILS');
     const d = payload.delivery;
     addField('Address', [d.street, d.unit, d.city, d.province, d.postalCode].filter(Boolean).join(', '));
     addField('Date', d.date);
     addField('Time', d.time || 'Any time');
     addField('Moving Customer', d.usingMovingService ? 'Yes — FREE delivery' : 'No — $10.00 delivery fee');
-
-    // Order Items
     addSection('ORDER ITEMS');
     if (payload.items && payload.items.length > 0) {
-      payload.items.forEach(item => {
-        addLine(`  ${item.qty}x  ${item.name}  —  $${item.lineTotal.toFixed(2)}`, 9);
-      });
+      payload.items.forEach(item => { addLine(`  ${item.qty}x  ${item.name}  —  $${item.lineTotal.toFixed(2)}`, 9); });
       y += 3;
       addLine(`Subtotal: $${payload.subtotal.toFixed(2)}`, 9, true);
       addLine(`Delivery: ${payload.deliveryFee === 0 ? 'FREE' : '$' + payload.deliveryFee.toFixed(2)}`, 9, true);
@@ -559,18 +502,11 @@
       doc.setFillColor(245, 244, 240); doc.roundedRect(margin, y-4, colW, 8, 2, 2, 'F');
       addLine(`TOTAL: $${payload.total.toFixed(2)}`, 11, true, [200, 64, 26]);
     }
-
-    // Notes
     if (payload.notes) { addSection('DELIVERY NOTES'); addLine(payload.notes, 9); }
-
-    // Footer
     doc.setFontSize(8); doc.setTextColor(156, 154, 148);
-    doc.text('210 Joseph Zatzman Dr., Dartmouth, NS B3B 1P4  |  902.701.9876  |  Info3028@twomen.ca', W/2, 290, {align:'center'});
-
+    doc.text('210 Joseph Zatzman Dr, Dartmouth, NS B3B 1P4  |  +1 (902) 259-2498  |  Info3028@twomen.ca', W/2, 290, {align:'center'});
     return doc.output('blob');
   }
-
-  // ─── UPLOAD TO CLOUDINARY ─────────────────────────────────
   async function uploadToCloudinary(pdfBlob, refNumber, customerName) {
     const safeName = (customerName || 'Customer').replace(/[^a-zA-Z0-9]/g, '_');
     const publicId = `tmt-box-orders/${safeName}_${refNumber}`;
@@ -579,101 +515,69 @@
     formData.append('file', pdfFile);
     formData.append('upload_preset', CLOUDINARY_PRESET);
     formData.append('public_id', publicId);
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
-      method: 'POST', body: formData
-    });
-    if (!res.ok) { const err = await res.json(); console.error('Cloudinary error:', err); throw new Error('Upload failed'); }
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {method: 'POST', body: formData});
+    if (!res.ok) { const err = await res.json(); throw new Error('Upload failed'); }
     const data = await res.json();
     return data.secure_url;
   }
-
-  // ─── GENERATE REF ─────────────────────────────────────────
   function generateRef() { return 'BOX-' + Date.now().toString(36).toUpperCase(); }
-
-  // ─── SUBMIT ───────────────────────────────────────────────
   async function submitForm() {
     const firstName = document.getElementById('firstName').value.trim();
     const lastName = document.getElementById('lastName').value.trim();
     const fullName = firstName + ' ' + lastName;
     const phone = document.getElementById('phone').value.trim();
     const email = document.getElementById('email').value.trim();
+    const street = document.getElementById('street').value.trim();
     const city = document.getElementById('city').value.trim();
     const postalCode = document.getElementById('postalCode').value.trim();
     const deliveryDate = document.getElementById('deliveryDate').value;
     const items = getSelectedItems();
-
-    // Get street value from pac element or regular input
-    const pacEl = document.getElementById('street-pac');
-    const streetEl = document.getElementById('street');
-    const street = pacEl ? (pacEl.dataset.street || '') : (streetEl ? streetEl.value.trim() : '');
-
     document.getElementById('errorMsg').classList.remove('visible');
     document.querySelectorAll('.invalid').forEach(e=>e.classList.remove('invalid'));
     document.querySelectorAll('.field-error').forEach(e=>e.classList.remove('visible'));
-
     let hasError = false;
-
     if (!firstName) { setInvalid('firstName','firstName-error','First name is required'); hasError=true; }
     else setValid('firstName','firstName-error');
-
     if (!lastName) { setInvalid('lastName','lastName-error','Last name is required'); hasError=true; }
     else setValid('lastName','lastName-error');
-
     if (!phone) { setInvalid('phone','phone-error','Phone number is required'); hasError=true; }
     else if (!isValidPhone(phone)) { setInvalid('phone','phone-error','Please enter a valid 10-digit phone number'); hasError=true; }
     else setValid('phone','phone-error');
-
     if (!email) { setInvalid('email','email-error','Email address is required'); hasError=true; }
     else if (!isValidEmail(email)) { setInvalid('email','email-error','Please enter a valid email address'); hasError=true; }
     else setValid('email','email-error');
-
     if (!street) { setInvalid('street','street-error','Delivery address is required'); hasError=true; }
     else setValid('street','street-error');
-
     if (!city) { setInvalid('city','city-error','City is required'); hasError=true; }
     else setValid('city','city-error');
-
     if (!postalCode) { setInvalid('postalCode','postalCode-error','Postal code is required'); hasError=true; }
     else setValid('postalCode','postalCode-error');
-
     if (!deliveryDate) { setInvalid('deliveryDate','deliveryDate-error','Delivery date is required'); hasError=true; }
     else setValid('deliveryDate','deliveryDate-error');
-
     if (items.length === 0) {
       document.getElementById('errorMsg').textContent = 'Please select at least one item to order.';
       document.getElementById('errorMsg').classList.add('visible');
       hasError = true;
     }
-
     if (hasError) {
       const first = document.querySelector('.invalid');
       if (first) first.scrollIntoView({behavior:'smooth', block:'center'});
       return;
     }
-
     const btn = document.getElementById('submitBtn');
     const btnText = document.getElementById('btn-text');
     const spinner = document.getElementById('spinner');
     btn.disabled = true; btnText.style.display = 'none'; spinner.style.display = 'block';
-
     const subtotal = items.reduce((s, i) => s + i.lineTotal, 0);
     const delivery = freeDelivery ? 0 : DELIVERY_FEE;
     const refNumber = generateRef();
-
     try {
       const payload = {
         refNumber,
         submittedAt: new Date().toISOString(),
-        contact: {
-          firstName,
-          lastName,
-          fullName,
-          phone: '+1' + phone.replace(/\D/g,'').replace(/^1/,''),
-          email
-        },
+        contact: { firstName, lastName, fullName, phone: '+1' + phone.replace(/\D/g,'').replace(/^1/,''), email },
         delivery: {
-          street,
-          city,
+          street, city,
           province: document.getElementById('province').value,
           postalCode,
           unit: document.getElementById('unit').value,
@@ -683,51 +587,31 @@
           usingMovingService: freeDelivery,
           deliveryFee: delivery
         },
-        items,
-        subtotal,
-        deliveryFee: delivery,
-        total: subtotal + delivery,
+        items, subtotal, deliveryFee: delivery, total: subtotal + delivery,
         notes: document.getElementById('notes').value.trim()
       };
-
-      // Generate PDF
-      btnText.textContent = 'Generating PDF...';
-      btnText.style.display = 'inline'; spinner.style.display = 'none';
+      btnText.textContent = 'Generating PDF...'; btnText.style.display = 'inline'; spinner.style.display = 'none';
       const pdfBlob = generatePDF(payload);
-
-      // Upload to Cloudinary
       btnText.textContent = 'Uploading...';
       const pdfUrl = await uploadToCloudinary(pdfBlob, refNumber, fullName);
       payload.pdfUrl = pdfUrl;
-
-      // Send to GHL
       btnText.textContent = 'Submitting...';
-      const res = await fetch(GHL_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
+      const res = await fetch(GHL_WEBHOOK_URL, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
       if (res.ok) {
         document.getElementById('main-form').style.display = 'none';
         document.getElementById('thankyouScreen').classList.add('visible');
         document.getElementById('refNumber').textContent = 'Reference: ' + refNumber;
       } else throw new Error();
     } catch(err) {
-      console.error(err);
       btn.disabled = false; btnText.textContent = 'Submit Order'; btnText.style.display = 'inline'; spinner.style.display = 'none';
       document.getElementById('errorMsg').textContent = 'Something went wrong. Please try again or call us at +1 902-259-2498.';
       document.getElementById('errorMsg').classList.add('visible');
     }
   }
-
-  // Build product grids
   buildGrid(products.boxes, 'boxes-grid');
   buildGrid(products.tv, 'tv-grid');
   buildGrid(products.supplies, 'supplies-grid');
   buildGrid(products.mattress, 'mattress-grid');
-
-  // Set min date to today using local timezone
   const now = new Date();
   const today = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
   document.getElementById('deliveryDate').setAttribute('min', today);
