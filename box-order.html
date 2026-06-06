@@ -407,44 +407,34 @@
   }
 
   // ─── GOOGLE MAPS AUTOCOMPLETE ─────────────────────────────
-  async function initAutocomplete() {
-    const inputEl = document.getElementById('street');
-    if (!inputEl) return;
-    try {
-      const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
-      const pac = new PlaceAutocompleteElement({ includedRegionCodes: ['ca'] });
-      pac.id = 'street-pac';
-      pac.dataset.street = '';
-      pac.style.width = '100%';
-      pac.style.display = 'block';
-      inputEl.parentNode.replaceChild(pac, inputEl);
-      pac.addEventListener('gmp-select', async (event) => {
-        try {
-          const place = event.placePrediction.toPlace();
-          await place.fetchFields({ fields: ['addressComponents'] });
-          let streetNum='', route='', city='', province='', postal='';
-          if (place.addressComponents) {
-            place.addressComponents.forEach(c => {
-              const types = c.types || [];
-              if (types.includes('street_number')) streetNum = c.longText || '';
-              if (types.includes('route')) route = c.longText || '';
-              if (types.includes('locality')) city = c.longText || '';
-              if (types.includes('administrative_area_level_1')) province = c.longText || '';
-              if (types.includes('postal_code')) postal = c.longText || '';
-            });
-          }
-          const streetVal = (streetNum + ' ' + route).trim();
-          pac.dataset.street = streetVal;
-          pac.classList.add('valid-address');
-          const fill = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-          fill('city', city);
-          fill('province', province);
-          fill('postalCode', postal);
-        } catch(err) { console.log('Place select error:', err); }
+  function initAutocomplete() {
+    const input = document.getElementById('street');
+    if (!input || !window.google || !google.maps.places) return;
+    const autocomplete = new google.maps.places.Autocomplete(input, {
+      componentRestrictions: { country: 'ca' },
+      fields: ['address_components'],
+      types: ['address']
+    });
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      if (!place.address_components) return;
+      let streetNum='', route='', city='', province='', postal='';
+      place.address_components.forEach(c => {
+        if (c.types.includes('street_number')) streetNum = c.long_name;
+        if (c.types.includes('route')) route = c.long_name;
+        if (c.types.includes('locality')) city = c.long_name;
+        if (c.types.includes('administrative_area_level_1')) province = c.long_name;
+        if (c.types.includes('postal_code')) postal = c.long_name;
       });
-    } catch(e) { console.log('Places API error:', e); }
+      input.value = (streetNum + ' ' + route).trim();
+      input.classList.add('valid-address');
+      const fill = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+      fill('city', city);
+      fill('province', province);
+      fill('postalCode', postal);
+    });
   }
-  window.addEventListener('load', () => { setTimeout(initAutocomplete, 1000); });
+  window.addEventListener('load', () => { setTimeout(initAutocomplete, 800); });
 
   const isValidEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
   const isValidPhone = p => p.replace(/\D/g,'').replace(/^1/,'').length === 10;
@@ -541,9 +531,7 @@
     const fullName = firstName + ' ' + lastName;
     const phone = document.getElementById('phone').value.trim();
     const email = document.getElementById('email').value.trim();
-    const pacEl = document.getElementById('street-pac');
-    const streetEl = document.getElementById('street');
-    const street = pacEl ? (pacEl.dataset.street || '') : (streetEl ? streetEl.value.trim() : '');
+    const street = document.getElementById('street').value.trim();
     const city = document.getElementById('city').value.trim();
     const postalCode = document.getElementById('postalCode').value.trim();
     const deliveryDate = document.getElementById('deliveryDate').value;
