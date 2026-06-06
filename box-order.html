@@ -110,6 +110,12 @@
   .pac-item { padding: 8px 12px !important; font-size: 13px !important; cursor: pointer !important; }
   .pac-item:hover { background: var(--surface2) !important; }
   .pac-item-selected { background: var(--blue-light) !important; }
+  gmp-placeautocomplete { width: 100%; display: block; }
+  gmp-placeautocomplete::part(input) { font-family: 'DM Sans', sans-serif !important; font-size: 16px !important; color: #1a1917 !important; background: #f9f8f5 !important; border: 0.5px solid #ccc9bc !important; border-radius: 6px !important; padding: 9px 11px !important; outline: none !important; width: 100% !important; box-sizing: border-box !important; height: auto !important; box-shadow: none !important; }
+  gmp-placeautocomplete::part(input):focus { border-color: #1a4fa0 !important; box-shadow: 0 0 0 3px #eef2fb !important; background: #fff !important; }
+  gmp-placeautocomplete.valid-address::part(input) { border-color: #1a7a3c !important; box-shadow: 0 0 0 3px #edf7f1 !important; }
+  gmp-placeautocomplete::part(suggestions-container) { max-height: 220px !important; overflow-y: auto !important; position: absolute !important; z-index: 9999 !important; }
+  @media (max-width: 768px) { gmp-placeautocomplete::part(suggestions-container) { max-height: 160px !important; } }
   @media print { body { background: white; padding: 0; } .btn-row, .summary-card { display: none; } .card { border: 1px solid #ccc; box-shadow: none; } }
   @media (max-width: 560px) { .field-row.two, .field-row.three { grid-template-columns: 1fr; } .product-grid { grid-template-columns: 1fr; } header { flex-direction: column; gap: 12px; } .btn-row { flex-direction: column; } }
 </style>
@@ -400,33 +406,41 @@
     document.getElementById('totalDisplay').textContent = '$' + total.toFixed(2);
   }
 
-  // ─── GOOGLE MAPS AUTOCOMPLETE (classic — no full-screen on mobile) ─────────
+  // ─── GOOGLE MAPS AUTOCOMPLETE ─────────────────────────────
   async function initAutocomplete() {
+    const inputEl = document.getElementById('street');
+    if (!inputEl) return;
     try {
-      await google.maps.importLibrary("places");
-      const input = document.getElementById('street');
-      const autocomplete = new google.maps.places.Autocomplete(input, {
-        componentRestrictions: { country: 'ca' },
-        fields: ['address_components', 'formatted_address'],
-        types: ['address']
-      });
-      autocomplete.addListener('place_changed', () => {
-        const place = autocomplete.getPlace();
-        if (!place.address_components) return;
-        let streetNum='', route='', city='', province='', postal='';
-        place.address_components.forEach(c => {
-          if (c.types.includes('street_number')) streetNum = c.long_name;
-          if (c.types.includes('route')) route = c.long_name;
-          if (c.types.includes('locality')) city = c.long_name;
-          if (c.types.includes('administrative_area_level_1')) province = c.long_name;
-          if (c.types.includes('postal_code')) postal = c.long_name;
-        });
-        input.value = (streetNum + ' ' + route).trim();
-        input.classList.add('valid-address');
-        const fill = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
-        fill('city', city);
-        fill('province', province);
-        fill('postalCode', postal);
+      const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
+      const pac = new PlaceAutocompleteElement({ includedRegionCodes: ['ca'] });
+      pac.id = 'street-pac';
+      pac.dataset.street = '';
+      pac.style.width = '100%';
+      pac.style.display = 'block';
+      inputEl.parentNode.replaceChild(pac, inputEl);
+      pac.addEventListener('gmp-select', async (event) => {
+        try {
+          const place = event.placePrediction.toPlace();
+          await place.fetchFields({ fields: ['addressComponents'] });
+          let streetNum='', route='', city='', province='', postal='';
+          if (place.addressComponents) {
+            place.addressComponents.forEach(c => {
+              const types = c.types || [];
+              if (types.includes('street_number')) streetNum = c.longText || '';
+              if (types.includes('route')) route = c.longText || '';
+              if (types.includes('locality')) city = c.longText || '';
+              if (types.includes('administrative_area_level_1')) province = c.longText || '';
+              if (types.includes('postal_code')) postal = c.longText || '';
+            });
+          }
+          const streetVal = (streetNum + ' ' + route).trim();
+          pac.dataset.street = streetVal;
+          pac.classList.add('valid-address');
+          const fill = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+          fill('city', city);
+          fill('province', province);
+          fill('postalCode', postal);
+        } catch(err) { console.log('Place select error:', err); }
       });
     } catch(e) { console.log('Places API error:', e); }
   }
@@ -527,7 +541,9 @@
     const fullName = firstName + ' ' + lastName;
     const phone = document.getElementById('phone').value.trim();
     const email = document.getElementById('email').value.trim();
-    const street = document.getElementById('street').value.trim();
+    const pacEl = document.getElementById('street-pac');
+    const streetEl = document.getElementById('street');
+    const street = pacEl ? (pacEl.dataset.street || '') : (streetEl ? streetEl.value.trim() : '');
     const city = document.getElementById('city').value.trim();
     const postalCode = document.getElementById('postalCode').value.trim();
     const deliveryDate = document.getElementById('deliveryDate').value;
