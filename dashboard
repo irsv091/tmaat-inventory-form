@@ -29,10 +29,17 @@
 }
 body {
   font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
+  background: var(--bg) !important;
   color: var(--text);
+  padding: 0;
+  margin: 0 !important;
+  min-height: 100vh;
+}
+.widget-wrap {
+  background: var(--bg);
   padding: 1.25rem;
   min-height: 100vh;
+  border-radius: 12px;
 }
 .header {
   display: flex; align-items: center;
@@ -165,6 +172,7 @@ body {
 </style>
 </head>
 <body>
+<div class="widget-wrap">
 
 <div class="header">
   <div class="header-left">
@@ -410,5 +418,6 @@ async function fetchAll() {
 fetchAll();
 setInterval(fetchAll, 30000);
 </script>
+</div>
 </body>
 </html>
