@@ -563,9 +563,33 @@
   }
 
   addAddr('pickup'); addAddr('dropoff'); buildRooms();
-  const today = new Date().toISOString().split('T')[0];
+
+  // Set min date to today in local timezone (not UTC which can be off by a day)
+  const now = new Date();
+  const today = now.getFullYear() + '-' +
+    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+    String(now.getDate()).padStart(2, '0');
+
   document.getElementById('pickupDate').setAttribute('min', today);
   document.getElementById('dropoffDate').setAttribute('min', today);
+
+  // Also re-enforce on focus in case browser ignores min attribute
+  ['pickupDate', 'dropoffDate'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('change', () => {
+      if (el.value < today) {
+        el.value = today;
+        el.classList.add('invalid');
+        const err = document.getElementById(id + '-error');
+        if (err) { err.textContent = 'Please select today or a future date'; err.classList.add('visible'); }
+      } else {
+        el.classList.remove('invalid');
+        const err = document.getElementById(id + '-error');
+        if (err) err.classList.remove('visible');
+      }
+    });
+  });
 </script>
 </body>
 </html>
